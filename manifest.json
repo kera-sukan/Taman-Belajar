@@ -1,0 +1,16 @@
+{
+  "name": "Taman Belajar",
+  "short_name": "Taman Belajar",
+  "description": "Sistem Manajemen & Laporan Belajar, Mengaji, Berkembang",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#2563eb",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2232/2232688.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
