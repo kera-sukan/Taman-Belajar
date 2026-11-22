@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Taman Belajar — Belajar · Mengaji · Berkembang</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#4f46e5',
+              600: '#4338ca',
+              700: '#3730a3',
+              900: '#1e1b4b',
+            }
+          },
+          boxShadow: {
+            'soft': '0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.02)',
+            'card': '0 2px 10px rgba(15, 23, 42, 0.03)',
+            'nav': '0 -4px 20px rgba(15, 23, 42, 0.06)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #F8FAFC;
+      color: #0F172A;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+
+    /* Smooth View Transitions */
+    .view-section {
+      animation: fadeSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Modal Backdrop & Sheet Animation */
+    .modal-backdrop {
+      animation: fadeIn 0.2s ease-out forwards;
+    }
+    .modal-sheet {
+      animation: sheetUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes sheetUp {
+      from { transform: translateY(100%); opacity: 0.6; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @media (min-width: 640px) {
+      @keyframes sheetUp {
+        from { transform: scale(0.95) translateY(10px); opacity: 0; }
+        to { transform: scale(1) translateY(0); opacity: 1; }
+      }
+    }
+
+    /* Hide scrollbar for horizontal chips */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center bg-slate-100/80">
+
+  <!-- Main App Container (Mobile-first centered shell with proportional desktop card look) -->
+  <div id="app-shell" class="w-full max-w-lg md:max-w-2xl min-h-screen bg-[#F8FAFC] relative shadow-xl md:my-6 md:min-h-[calc(100vh-3rem)] md:rounded-[32px] md:border md:border-slate-200/80 overflow-x-clip flex flex-col pb-24">
+
+    <!-- ==================== HEADER HERO ==================== -->
+    <header class="bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-800 text-white pt-6 pb-20 px-5 sm:px-7 rounded-b-[32px] relative overflow-hidden shrink-0">
+      <!-- Decorative Ambient Circles -->
+      <div class="absolute -top-12 -right-12 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="absolute bottom-2 -left-10 w-32 h-32 bg-blue-400/20 rounded-full blur-xl pointer-events-none"></div>
+
+      <div class="relative z-10 flex items-center justify-between gap-3">
+        <!-- App Identity -->
+        <div class="flex items-center gap-3.5 cursor-pointer" onclick="navigateTo('beranda')">
+          <div class="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center shadow-inner">
+            <i data-lucide="book-open-check" class="w-6 h-6 text-white"></i>
+          </div>
+          <div>
+            <h1 id="header-app-name" class="text-xl sm:text-2xl font-extrabold tracking-tight leading-tight">Taman Belajar</h1>
+            <p class="text-xs sm:text-sm text-indigo-100 font-medium tracking-wide">Belajar · Mengaji · Berkembang</p>
+          </div>
+        </div>
+
+        <!-- Teacher Profile Pill -->
+        <button onclick="navigateTo('pengaturan')" class="flex items-center gap-2 bg-white/15 hover:bg-white/25 active:scale-95 transition-all backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full text-xs font-semibold">
+          <span class="w-6 h-6 rounded-full bg-amber-400 text-indigo-950 font-bold flex items-center justify-center text-[11px]" id="header-avatar">KH</span>
+          <span id="header-teacher-short" class="hidden sm:inline">Khasanah</span>
+          <i data-lucide="settings-2" class="w-3.5 h-3.5 text-indigo-100"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- ==================== FLOATING GREETING & STATS CARD ==================== -->
+    <section class="px-4 sm:px-6 -mt-14 relative z-20 shrink-0">
+      <div class="bg-white rounded-3xl p-4 sm:p-5 shadow-soft border border-slate-100">
+        <!-- Greeting & Date Selector -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-100">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-1.5">
+              Halo, <span id="greeting-teacher-name">Khasanah</span> <span class="text-xl">👋</span>
+            </h2>
+            <p id="display-active-date" class="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">Minggu, 22 November 2026</p>
+          </div>
+
+          <!-- Interactive Date Picker Pill -->
+          <label class="relative inline-flex items-center gap-1.5 bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 border border-slate-200/80 px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition-colors">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-600"></i>
+            <span>Pilih Tanggal</span>
+            <input type="date" id="active-date-input" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+          </label>
+        </div>
+
+        <!-- 3 Dynamic Statistic Cards -->
+        <div class="grid grid-cols-3 gap-2.5 sm:gap-3.5 pt-4">
+          <!-- Stat 1: Murid Aktif -->
+          <button onclick="navigateTo('murid')" class="group bg-slate-50/90 hover:bg-indigo-50/70 border border-slate-100 hover:border-indigo-200 rounded-2xl p-3 text-center transition-all active:scale-95">
+            <div class="text-2xl sm:text-3xl font-extrabold text-indigo-600 group-hover:scale-105 transition-transform" id="stat-total-students">15</div>
+            <div class="text-[11px] sm:text-xs font-semibold text-slate-500 mt-1">Murid Aktif</div>
+          </button>
+
+          <!-- Stat 2: Hadir Mengaji -->
+          <button onclick="openAttendanceTab('mengaji')" class="group bg-emerald-50/60 hover:bg-emerald-100/70 border border-emerald-100/80 hover:border-emerald-200 rounded-2xl p-3 text-center transition-all active:scale-95">
+            <div class="text-2xl sm:text-3xl font-extrabold text-emerald-600 group-hover:scale-105 transition-transform" id="stat-hadir-mengaji">9</div>
+            <div class="text-[11px] sm:text-xs font-semibold text-slate-600 mt-1">Hadir Mengaji</div>
+          </button>
+
+          <!-- Stat 3: Hadir Les -->
+          <button onclick="openAttendanceTab('les')" class="group bg-blue-50/60 hover:bg-blue-100/70 border border-blue-100/80 hover:border-blue-200 rounded-2xl p-3 text-center transition-all active:scale-95">
+            <div class="text-2xl sm:text-3xl font-extrabold text-blue-600 group-hover:scale-105 transition-transform" id="stat-hadir-les">0</div>
+            <div class="text-[11px] sm:text-xs font-semibold text-slate-600 mt-1">Hadir Les</div>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== DYNAMIC MAIN CONTENT AREA ==================== -->
+    <main id="main-content" class="flex-1 px-4 sm:px-6 pt-6 space-y-6">
+      <!-- Content injected dynamically by JS based on active route -->
+    </main>
+
+    <!-- ==================== STICKY BOTTOM NAVIGATION ==================== -->
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg md:max-w-2xl bg-white/90 backdrop-blur-lg border-t border-slate-200/80 shadow-nav px-2 py-2 z-40 md:rounded-b-[32px]">
+      <div class="grid grid-cols-5 gap-1">
+        <button onclick="navigateTo('beranda')" data-nav="beranda" class="nav-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all text-indigo-600 bg-indigo-50/90 font-bold">
+          <i data-lucide="home" class="w-5 h-5 mb-0.5"></i>
+          <span class="text-[11px]">Beranda</span>
+        </button>
+        <button onclick="navigateTo('murid')" data-nav="murid" class="nav-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all text-slate-500 hover:text-slate-800 font-medium">
+          <i data-lucide="users" class="w-5 h-5 mb-0.5"></i>
+          <span class="text-[11px]">Murid</span>
+        </button>
+        <button onclick="navigateTo('kehadiran')" data-nav="kehadiran" class="nav-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all text-slate-500 hover:text-slate-800 font-medium">
+          <i data-lucide="check-circle-2" class="w-5 h-5 mb-0.5"></i>
+          <span class="text-[11px]">Hadir</span>
+        </button>
+        <button onclick="navigateTo('laporan')" data-nav="laporan" class="nav-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all text-slate-500 hover:text-slate-800 font-medium">
+          <i data-lucide="bar-chart-3" class="w-5 h-5 mb-0.5"></i>
+          <span class="text-[11px]">Laporan</span>
+        </button>
+        <button onclick="navigateTo('pengaturan')" data-nav="pengaturan" class="nav-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all text-slate-500 hover:text-slate-800 font-medium">
+          <i data-lucide="settings" class="w-5 h-5 mb-0.5"></i>
+          <span class="text-[11px]">Atur</span>
+        </button>
+      </div>
+    </nav>
+
+  </div>
+
+  <!-- ==================== UNIVERSAL MODAL / DRAWER ==================== -->
+  <div id="modal-container" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-xs p-0 sm:p-4 modal-backdrop">
+    <div id="modal-box" class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-100 max-h-[90vh] flex flex-col overflow-hidden modal-sheet">
+      <!-- Modal Header -->
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+        <div class="flex items-center gap-2.5">
+          <div id="modal-icon-wrap" class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+            <i id="modal-icon" data-lucide="plus" class="w-5 h-5"></i>
+          </div>
+          <h3 id="modal-title" class="text-base sm:text-lg font-bold text-slate-800">Judul Modal</h3>
+        </div>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div id="modal-body" class="p-5 overflow-y-auto space-y-4">
+        <!-- Form injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATION ==================== -->
+  <div id="toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-[60] pointer-events-none flex flex-col items-center gap-2 w-full max-w-sm px-4"></div>
+
+  <!-- ==================== APPLICATION LOGIC ==================== -->
+  <script>
+    // ------------------------------------------------------------------
+    // 1. STATE & INITIAL DATA SEEDING (15 Realistic Indonesian Students)
+    // ------------------------------------------------------------------
+    const STORAGE_KEY = 'taman_belajar_v2_data';
+
+    function getTodayISO() {
+      // Menggunakan tanggal lokal perangkat saat ini
+      const now = new Date();
+      const offset = now.getTimezoneOffset() * 60000;
+      return new Date(now.getTime() - offset).toISOString().split('T')[0];
+    }
+
+    const INITIAL_STUDENTS = [
+      { id: 's1', name: 'Aisyah Putri Ramadhani', program: 'keduanya', level: 'SD Kelas 3', mengajiLevel: 'Iqro 4', parentPhone: '081234567801', active: true },
+      { id: 's2', name: 'Muhammad Fatih Al-Ghifari', program: 'mengaji', level: 'SD Kelas 2', mengajiLevel: 'Iqro 3', parentPhone: '081234567802', active: true },
+      { id: 's3', name: 'Zahra Khairunnisa', program: 'keduanya', level: 'SD Kelas 4', mengajiLevel: 'Al-Qur\'an Juz 2', parentPhone: '081234567803', active: true },
+      { id: 's4', name: 'Raffi Ahmad Pratama', program: 'les', level: 'SD Kelas 5', mengajiLevel: '-', parentPhone: '081234567804', active: true },
+      { id: 's5', name: 'Nabila Azzahra', program: 'mengaji', level: 'TK B', mengajiLevel: 'Iqro 1', parentPhone: '081234567805', active: true },
+      { id: 's6', name: 'Rayyanza Malik Ibrahim', program: 'keduanya', level: 'SD Kelas 1', mengajiLevel: 'Iqro 2', parentPhone: '081234567806', active: true },
+      { id: 's7', name: 'Salsabila Oktaviani', program: 'keduanya', level: 'SD Kelas 6', mengajiLevel: 'Al-Qur\'an Juz 5', parentPhone: '081234567807', active: true },
+      { id: 's8', name: 'Arkananta Daffa Nugroho', program: 'mengaji', level: 'SD Kelas 3', mengajiLevel: 'Iqro 5', parentPhone: '081234567808', active: true },
+      { id: 's9', name: 'Keysha Adelia Putri', program: 'les', level: 'SD Kelas 4', mengajiLevel: '-', parentPhone: '081234567809', active: true },
+      { id: 's10', name: 'Zaidan Alfarizi', program: 'mengaji', level: 'SD Kelas 2', mengajiLevel: 'Iqro 4', parentPhone: '081234567810', active: true },
+      { id: 's11', name: 'Humaira Azzahra', program: 'keduanya', level: 'SD Kelas 5', mengajiLevel: 'Al-Qur\'an Juz 1', parentPhone: '081234567811', active: true },
+      { id: 's12', name: 'Gibran Rakabuming Putra', program: 'mengaji', level: 'SD Kelas 1', mengajiLevel: 'Iqro 2', parentPhone: '081234567812', active: true },
+      { id: 's13', name: 'Almira Syifa Nadhira', program: 'keduanya', level: 'TK B', mengajiLevel: 'Iqro 1', parentPhone: '081234567813', active: true },
+      { id: 's14', name: 'Kenzo Atharrayhan', program: 'mengaji', level: 'SD Kelas 4', mengajiLevel: 'Iqro 6', parentPhone: '081234567814', active: true },
+      { id: 's15', name: 'Qiana Shaqueena', program: 'les', level: 'SD Kelas 3', mengajiLevel: '-', parentPhone: '081234567815', active: true }
+    ];
+
+    function createDefaultData() {
+      const today = getTodayISO();
+      // Default 9 hadir mengaji & 0 hadir les sesuai tampilan referensi awal
+      const defaultMengajiAttendance = {
+        s1: 'hadir', s2: 'hadir', s3: 'hadir', s5: 'hadir', s6: 'hadir',
+        s7: 'hadir', s8: 'hadir', s10: 'hadir', s11: 'hadir'
+      };
+
+      return {
+        settings: {
+          teacherName: 'Khasanah',
+          institutionName: 'Taman Belajar'
+        },
+        students: INITIAL_STUDENTS,
+        attendance: {
+          [today]: {
+            mengaji: defaultMengajiAttendance,
+            les: {}
+          }
+        },
+        mengajiLogs: [],
+        lesLogs: []
+      };
+    }
+
+    let appState = loadData();
+    let currentRoute = 'beranda';
+    let selectedDate = getTodayISO();
+    let attendanceSessionTab = 'mengaji'; // 'mengaji' | 'les'
+    let studentFilterProgram = 'semua'; // 'semua' | 'mengaji' | 'les' | 'keduanya'
+    let studentSearchQuery = '';
+    let reportFilterMonth = selectedDate.slice(0, 7); // YYYY-MM
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          const seeded = createDefaultData();
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
+          return seeded;
+        }
+        return JSON.parse(raw);
+      } catch (err) {
+        console.error('Gagal membaca localStorage:', err);
+        return createDefaultData();
+      }
+    }
+
+    function saveData() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+        updateTopSummary();
+      } catch (err) {
+        showToast('Gagal menyimpan data ke penyimpanan lokal', 'error');
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // 2. DATE & FORMATTING HELPERS
+    // ------------------------------------------------------------------
+    function formatIndonesianDate(isoDateStr) {
+      if (!isoDateStr) return '';
+      const [y, m, d] = isoDateStr.split('-').map(Number);
+      const dateObj = new Date(y, m - 1, d);
+      const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const months = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+      return `${days[dateObj.getDay()]}, ${d} ${months[m - 1]} ${y}`;
+    }
+
+    function getInitials(name) {
+      return name
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map(w => w[0].toUpperCase())
+        .join('');
+    }
+
+    function getProgramBadge(program) {
+      if (program === 'mengaji') {
+        return `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70">Mengaji</span>`;
+      }
+      if (program === 'les') {
+        return `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/70">Les & Bimbel</span>`;
+      }
+      return `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/70">Mengaji & Les</span>`;
+    }
+
+    // ------------------------------------------------------------------
+    // 3. TOP HEADER & HERO STATS SYNC
+    // ------------------------------------------------------------------
+    function updateTopSummary() {
+      const { teacherName, institutionName } = appState.settings;
+      document.getElementById('header-app-name').textContent = institutionName;
+      document.getElementById('greeting-teacher-name').textContent = teacherName;
+      document.getElementById('header-teacher-short').textContent = teacherName.split(' ')[0];
+      document.getElementById('header-avatar').textContent = getInitials(teacherName || 'TB');
+      document.getElementById('display-active-date').textContent = formatIndonesianDate(selectedDate);
+      document.getElementById('active-date-input').value = selectedDate;
+
+      // Active Students count
+      const activeStudents = appState.students.filter(s => s.active !== false);
+      document.getElementById('stat-total-students').textContent = activeStudents.length;
+
+      // Attendance counts for selectedDate
+      const dayAttendance = appState.attendance[selectedDate] || { mengaji: {}, les: {} };
+      const hadirMengaji = Object.values(dayAttendance.mengaji || {}).filter(v => v === 'hadir').length;
+      const hadirLes = Object.values(dayAttendance.les || {}).filter(v => v === 'hadir').length;
+
+      document.getElementById('stat-hadir-mengaji').textContent = hadirMengaji;
+      document.getElementById('stat-hadir-les').textContent = hadirLes;
+    }
+
+    // ------------------------------------------------------------------
+    // 4. NAVIGATION CONTROLLER
+    // ------------------------------------------------------------------
+    function navigateTo(route) {
+      currentRoute = route;
+
+      // Update active state on bottom nav
+      const navButtons = document.querySelectorAll('.nav-btn');
+      const mapNav = {
+        'beranda': 'beranda',
+        'les': 'beranda',
+        'mengaji': 'beranda',
+        'murid': 'murid',
+        'kehadiran': 'kehadiran',
+        'laporan': 'laporan',
+        'pengaturan': 'pengaturan'
+      };
+      const targetNav = mapNav[route] || 'beranda';
+
+      navButtons.forEach(btn => {
+        const isTarget = btn.getAttribute('data-nav') === targetNav;
+        if (isTarget) {
+          btn.className = 'nav-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all text-indigo-600 bg-indigo-50/90 font-bold';
+        } else {
+          btn.className = 'nav-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all text-slate-500 hover:text-slate-800 font-medium';
+        }
+      });
+
+      renderCurrentView();
+      lucide.createIcons();
+    }
+
+    function openAttendanceTab(session) {
+      attendanceSessionTab = session;
+      navigateTo('kehadiran');
+    }
+
+    function renderCurrentView() {
+      const container = document.getElementById('main-content');
+      switch (currentRoute) {
+        case 'beranda':
+          container.innerHTML = renderDashboardView();
+          break;
+        case 'les':
+          container.innerHTML = renderLesView();
+          break;
+        case 'mengaji':
+          container.innerHTML = renderMengajiView();
+          break;
+        case 'kehadiran':
+          container.innerHTML = renderAttendanceView();
+          break;
+        case 'laporan':
+          container.innerHTML = renderReportView();
+          break;
+        case 'murid':
+          container.innerHTML = renderStudentsView();
+          break;
+        case 'pengaturan':
+          container.innerHTML = renderSettingsView();
+          break;
+        default:
+          container.innerHTML = renderDashboardView();
+      }
+      lucide.createIcons();
+    }
+
+    // ------------------------------------------------------------------
+    // 5. VIEW: BERANDA (DASHBOARD)
+    // ------------------------------------------------------------------
+    function renderDashboardView() {
+      const todayMengaji = appState.mengajiLogs.filter(l => l.date === selectedDate);
+      const todayLes = appState.lesLogs.filter(l => l.date === selectedDate);
+      const dayAtt = appState.attendance[selectedDate] || { mengaji: {}, les: {} };
+
+      // Combine timeline activities
+      const activities = [];
+
+      todayMengaji.forEach(item => {
+        const st = appState.students.find(s => s.id === item.studentId);
+        activities.push({
+          id: item.id,
+          type: 'mengaji',
+          time: item.time || 'Hari ini',
+          title: st ? st.name : 'Murid',
+          subtitle: `${item.juzOrIqro} · Hal/Ayat ${item.pageOrVerse}`,
+          badge: item.fluency,
+          note: item.notes
+        });
+      });
+
+      todayLes.forEach(item => {
+        const st = appState.students.find(s => s.id === item.studentId);
+        activities.push({
+          id: item.id,
+          type: 'les',
+          time: item.time || 'Hari ini',
+          title: st ? st.name : 'Murid',
+          subtitle: `${item.subject} · Materi: ${item.topic}`,
+          badge: item.score ? `Nilai: ${item.score}` : 'Selesai',
+          note: item.notes
+        });
+      });
+
+      // Summary attendance pills in timeline if attendance was recorded
+      const countMengaji = Object.values(dayAtt.mengaji || {}).filter(v => v === 'hadir').length;
+      const countLes = Object.values(dayAtt.les || {}).filter(v => v === 'hadir').length;
+
+      let activityHTML = '';
+      if (activities.length === 0 && countMengaji === 0 && countLes === 0) {
+        activityHTML = `
+          <div class="bg-white rounded-3xl border border-slate-100 p-7 text-center shadow-card">
+            <div class="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="clipboard-list" class="w-7 h-7"></i>
+            </div>
+            <h4 class="text-sm font-bold text-slate-700">Belum ada catatan pada tanggal ini</h4>
+            <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">Mulai catat progres mengaji, les & bimbel, atau presensi harian murid Anda.</p>
+            <div class="flex flex-wrap items-center justify-center gap-2 mt-4">
+              <button onclick="openMengajiModal()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all">+ Catat Mengaji</button>
+              <button onclick="openLesModal()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-all">+ Catat Les</button>
+            </div>
+          </div>
+        `;
+      } else {
+        activityHTML = `<div class="space-y-2.5">`;
+
+        if (countMengaji > 0 || countLes > 0) {
+          activityHTML += `
+            <div onclick="navigateTo('kehadiran')" class="bg-white hover:bg-amber-50/40 cursor-pointer rounded-2xl p-3.5 border border-slate-100 shadow-card flex items-center justify-between transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-100/80 text-amber-600 flex items-center justify-center shrink-0">
+                  <i data-lucide="user-check" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <p class="text-xs font-bold text-slate-800">Rekap Presensi Harian</p>
+                  <p class="text-[11px] text-slate-500 mt-0.5">Mengaji: <strong class="text-emerald-600">${countMengaji} hadir</strong> · Les: <strong class="text-blue-600">${countLes} hadir</strong></p>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </div>
+          `;
+        }
+
+        activities.slice().reverse().forEach(act => {
+          const isMengaji = act.type === 'mengaji';
+          const iconBg = isMengaji ? 'bg-emerald-100/80 text-emerald-600' : 'bg-blue-100/80 text-blue-600';
+          const iconName = isMengaji ? 'book-open' : 'graduation-cap';
+          const badgeColor = isMengaji
+            ? (act.badge === 'Lancar' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200')
+            : 'bg-blue-50 text-blue-700 border-blue-200';
+
+          activityHTML += `
+            <div class="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-card flex items-start justify-between gap-3">
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center shrink-0 mt-0.5">
+                  <i data-lucide="${iconName}" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h4 class="text-xs sm:text-sm font-bold text-slate-800">${act.title}</h4>
+                    <span class="text-[10px] text-slate-400 font-medium">• ${act.time}</span>
+                  </div>
+                  <p class="text-xs text-slate-600 font-medium mt-0.5">${act.subtitle}</p>
+                  ${act.note ? `<p class="text-[11px] text-slate-500 italic mt-1">"${act.note}"</p>` : ''}
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border shrink-0 ${badgeColor}">${act.badge}</span>
+            </div>
+          `;
+        });
+
+        activityHTML += `</div>`;
+      }
+
+      return `
+        <div class="view-section space-y-6">
+          <!-- Menu Utama 2x3 Grid -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight">Menu Utama</h3>
+              <span class="text-[11px] font-semibold text-slate-400">6 Modul Terpadu</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 sm:gap-4">
+              <!-- Card 1: Les & Bimbel -->
+              <button onclick="navigateTo('les')" class="group bg-blue-50/75 hover:bg-blue-100/80 border border-blue-100 hover:border-blue-200 rounded-3xl p-4 sm:p-5 text-left transition-all active:scale-[0.98] shadow-card flex flex-col justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-600/20 group-hover:scale-105 transition-transform mb-3.5">
+                  <i data-lucide="book-marked" class="w-6 h-6"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm sm:text-base font-bold text-blue-950">Les & Bimbel</h4>
+                  <p class="text-[11px] text-blue-700/80 font-medium mt-0.5">Nilai & materi belajar</p>
+                </div>
+              </button>
+
+              <!-- Card 2: Mengaji -->
+              <button onclick="navigateTo('mengaji')" class="group bg-emerald-50/75 hover:bg-emerald-100/80 border border-emerald-100 hover:border-emerald-200 rounded-3xl p-4 sm:p-5 text-left transition-all active:scale-[0.98] shadow-card flex flex-col justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/20 group-hover:scale-105 transition-transform mb-3.5">
+                  <i data-lucide="book-open" class="w-6 h-6"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm sm:text-base font-bold text-emerald-950">Mengaji</h4>
+                  <p class="text-[11px] text-emerald-700/80 font-medium mt-0.5">Iqro, Juz & kelancaran</p>
+                </div>
+              </button>
+
+              <!-- Card 3: Kehadiran -->
+              <button onclick="navigateTo('kehadiran')" class="group bg-amber-50/80 hover:bg-amber-100/80 border border-amber-100 hover:border-amber-200 rounded-3xl p-4 sm:p-5 text-left transition-all active:scale-[0.98] shadow-card flex flex-col justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform mb-3.5">
+                  <i data-lucide="check-square" class="w-6 h-6"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm sm:text-base font-bold text-amber-950">Kehadiran</h4>
+                  <p class="text-[11px] text-amber-800/80 font-medium mt-0.5">Absensi Mengaji & Les</p>
+                </div>
+              </button>
+
+              <!-- Card 4: Laporan -->
+              <button onclick="navigateTo('laporan')" class="group bg-violet-50/80 hover:bg-violet-100/80 border border-violet-100 hover:border-violet-200 rounded-3xl p-4 sm:p-5 text-left transition-all active:scale-[0.98] shadow-card flex flex-col justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-violet-600 text-white flex items-center justify-center shadow-md shadow-violet-600/20 group-hover:scale-105 transition-transform mb-3.5">
+                  <i data-lucide="pie-chart" class="w-6 h-6"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm sm:text-base font-bold text-violet-950">Laporan</h4>
+                  <p class="text-[11px] text-violet-700/80 font-medium mt-0.5">Rekap & kirim WhatsApp</p>
+                </div>
+              </button>
+
+              <!-- Card 5: Data Murid -->
+              <button onclick="navigateTo('murid')" class="group bg-indigo-50/75 hover:bg-indigo-100/80 border border-indigo-100 hover:border-indigo-200 rounded-3xl p-4 sm:p-5 text-left transition-all active:scale-[0.98] shadow-card flex flex-col justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/20 group-hover:scale-105 transition-transform mb-3.5">
+                  <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm sm:text-base font-bold text-indigo-950">Data Murid</h4>
+                  <p class="text-[11px] text-indigo-700/80 font-medium mt-0.5">${appState.students.length} murid terdaftar</p>
+                </div>
+              </button>
+
+              <!-- Card 6: Pengaturan & Backup -->
+              <button onclick="navigateTo('pengaturan')" class="group bg-slate-100/90 hover:bg-slate-200/75 border border-slate-200/80 rounded-3xl p-4 sm:p-5 text-left transition-all active:scale-[0.98] shadow-card flex flex-col justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-slate-700 text-white flex items-center justify-center shadow-md shadow-slate-700/20 group-hover:scale-105 transition-transform mb-3.5">
+                  <i data-lucide="settings" class="w-6 h-6"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm sm:text-base font-bold text-slate-900">Pengaturan</h4>
+                  <p class="text-[11px] text-slate-600 font-medium mt-0.5">Profil & Backup JSON</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Kegiatan Hari Ini -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight">Kegiatan Hari Ini</h3>
+              <span class="text-[11px] font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full">${activities.length} Catatan</span>
+            </div>
+            ${activityHTML}
+          </div>
+        </div>
+      `;
+    }
+
+    // ------------------------------------------------------------------
+    // 6. VIEW: LES & BIMBEL
+    // ------------------------------------------------------------------
+    function renderLesView() {
+      const logsForDate = appState.lesLogs.filter(l => l.date === selectedDate);
+      const allLogsRecent = appState.lesLogs.slice().reverse().slice(0, 15);
+
+      return `
+        <div class="view-section space-y-5">
+          <!-- Back & Action Header -->
+          <div class="flex items-center justify-between gap-2">
+            <button onclick="navigateTo('beranda')" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-indigo-600 bg-white px-3 py-2 rounded-xl border border-slate-200/80 shadow-xs">
+              <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
+            </button>
+            <button onclick="openLesModal()" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2.5 rounded-xl shadow-md shadow-blue-600/20 active:scale-95 transition-all">
+              <i data-lucide="plus" class="w-4 h-4"></i> Catat Progres Les
+            </button>
+          </div>
+
+          <!-- Banner Card -->
+          <div class="bg-gradient-to-r from-blue-600 to-sky-600 rounded-3xl p-5 text-white shadow-soft">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center">
+                <i data-lucide="book-marked" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <h2 class="text-base sm:text-lg font-extrabold">Jurnal Les & Bimbel</h2>
+                <p class="text-xs text-blue-100">Catat mata pelajaran, topik, nilai latihan & perkembangan murid</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Logs List -->
+          <div class="space-y-3">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Catatan Terbaru (${allLogsRecent.length})</h3>
+            ${allLogsRecent.length === 0 ? `
+              <div class="bg-white rounded-3xl border border-slate-100 p-8 text-center shadow-card">
+                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center mx-auto mb-3">
+                  <i data-lucide="pen-tool" class="w-6 h-6"></i>
+                </div>
+                <p class="text-sm font-bold text-slate-700">Belum ada catatan Les & Bimbel</p>
+                <p class="text-xs text-slate-500 mt-1">Klik tombol "+ Catat Progres Les" di atas untuk mulai mencatat.</p>
+              </div>
+            ` : allLogsRecent.map(log => {
+              const st = appState.students.find(s => s.id === log.studentId);
+              return `
+                <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-card flex items-start justify-between gap-3">
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="text-sm font-bold text-slate-800">${st ? st.name : 'Murid Terhapus'}</span>
+                      <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[11px] font-bold">${log.subject}</span>
+                    </div>
+                    <p class="text-xs text-slate-600 font-medium">Materi: ${log.topic}</p>
+                    ${log.notes ? `<p class="text-xs text-slate-500 bg-slate-50 p-2 rounded-xl mt-1.5 border border-slate-100">${log.notes}</p>` : ''}
+                    <p class="text-[11px] text-slate-400 pt-1">${formatIndonesianDate(log.date)}</p>
+                  </div>
+                  <div class="flex flex-col items-end gap-2 shrink-0">
+                    ${log.score ? `<span class="px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold">Nilai ${log.score}</span>` : ''}
+                    <button onclick="deleteLesLog('${log.id}')" class="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition-colors" title="Hapus catatan">
+                      <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function openLesModal() {
+      const eligibleStudents = appState.students.filter(s => s.program === 'les' || s.program === 'keduanya');
+      const listToUse = eligibleStudents.length > 0 ? eligibleStudents : appState.students;
+
+      openModal('Catat Progres Les & Bimbel', 'book-marked', 'bg-blue-100 text-blue-600', `
+        <form onsubmit="saveLesLog(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Pilih Murid</label>
+            <select id="les-student-id" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-blue-500 focus:outline-none">
+              ${listToUse.map(s => `<option value="${s.id}">${s.name} (${s.level})</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Mata Pelajaran</label>
+              <select id="les-subject" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-blue-500 focus:outline-none">
+                <option value="Matematika">Matematika</option>
+                <option value="Calistung">Calistung</option>
+                <option value="Bahasa Inggris">Bahasa Inggris</option>
+                <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                <option value="IPA / Sains">IPA / Sains</option>
+                <option value="PR Sekolah">Bimbingan PR Sekolah</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Nilai / Skor (Opsional)</label>
+              <input type="number" id="les-score" min="0" max="100" placeholder="Contoh: 90" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-blue-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Topik / Bab Materi</label>
+            <input type="text" id="les-topic" required placeholder="Misal: Perkalian Susun & Soal Cerita" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-blue-500 focus:outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Catatan Perkembangan</label>
+            <textarea id="les-notes" rows="2" placeholder="Misal: Sudah memahami konsep dengan cepat, perlu latihan ketelitian." class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-blue-500 focus:outline-none"></textarea>
+          </div>
+
+          <button type="submit" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg shadow-blue-600/20 transition-all active:scale-98">
+            Simpan Catatan Les
+          </button>
+        </form>
+      `);
+    }
+
+    function saveLesLog(e) {
+      e.preventDefault();
+      const studentId = document.getElementById('les-student-id').value;
+      const subject = document.getElementById('les-subject').value;
+      const score = document.getElementById('les-score').value.trim();
+      const topic = document.getElementById('les-topic').value.trim();
+      const notes = document.getElementById('les-notes').value.trim();
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+      appState.lesLogs.push({
+        id: 'les_' + Date.now(),
+        studentId,
+        date: selectedDate,
+        time: timeStr,
+        subject,
+        score,
+        topic,
+        notes
+      });
+
+      // Otomatis tandai hadir les pada tanggal aktif jika belum diabsen
+      if (!appState.attendance[selectedDate]) {
+        appState.attendance[selectedDate] = { mengaji: {}, les: {} };
+      }
+      if (!appState.attendance[selectedDate].les[studentId]) {
+        appState.attendance[selectedDate].les[studentId] = 'hadir';
+      }
+
+      saveData();
+      closeModal();
+      showToast('Catatan Les & Bimbel berhasil disimpan!', 'success');
+      renderCurrentView();
+    }
+
+    function deleteLesLog(id) {
+      appState.lesLogs = appState.lesLogs.filter(l => l.id !== id);
+      saveData();
+      showToast('Catatan les dihapus', 'info');
+      renderCurrentView();
+    }
+
+    // ------------------------------------------------------------------
+    // 7. VIEW: MENGAJI
+    // ------------------------------------------------------------------
+    function renderMengajiView() {
+      const recentLogs = appState.mengajiLogs.slice().reverse().slice(0, 15);
+
+      return `
+        <div class="view-section space-y-5">
+          <!-- Back & Action Header -->
+          <div class="flex items-center justify-between gap-2">
+            <button onclick="navigateTo('beranda')" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-emerald-600 bg-white px-3 py-2 rounded-xl border border-slate-200/80 shadow-xs">
+              <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
+            </button>
+            <button onclick="openMengajiModal()" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-4 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 active:scale-95 transition-all">
+              <i data-lucide="plus" class="w-4 h-4"></i> Catat Mengaji
+            </button>
+          </div>
+
+          <!-- Banner Card -->
+          <div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-3xl p-5 text-white shadow-soft">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center">
+                <i data-lucide="book-open" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <h2 class="text-base sm:text-lg font-extrabold">Setoran & Progres Mengaji</h2>
+                <p class="text-xs text-emerald-100">Pantau jilid Iqro 1–6, Juz Al-Qur'an, halaman & kelancaran bacaan</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Logs List -->
+          <div class="space-y-3">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Riwayat Setoran Mengaji (${recentLogs.length})</h3>
+            ${recentLogs.length === 0 ? `
+              <div class="bg-white rounded-3xl border border-slate-100 p-8 text-center shadow-card">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+                  <i data-lucide="book-open-check" class="w-6 h-6"></i>
+                </div>
+                <p class="text-sm font-bold text-slate-700">Belum ada setoran mengaji dicatat</p>
+                <p class="text-xs text-slate-500 mt-1">Klik "+ Catat Mengaji" untuk merekam capaian Iqro atau Al-Qur'an murid.</p>
+              </div>
+            ` : recentLogs.map(log => {
+              const st = appState.students.find(s => s.id === log.studentId);
+              const badgeStyle = log.fluency === 'Lancar'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : (log.fluency === 'Perlu Bimbingan' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200');
+
+              return `
+                <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-card flex items-start justify-between gap-3">
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="text-sm font-bold text-slate-800">${st ? st.name : 'Murid'}</span>
+                      <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-bold">${log.juzOrIqro}</span>
+                    </div>
+                    <p class="text-xs text-slate-600 font-medium">Halaman / Ayat: <strong>${log.pageOrVerse}</strong></p>
+                    ${log.notes ? `<p class="text-xs text-slate-500 bg-slate-50 p-2 rounded-xl mt-1.5 border border-slate-100">${log.notes}</p>` : ''}
+                    <p class="text-[11px] text-slate-400 pt-1">${formatIndonesianDate(log.date)}</p>
+                  </div>
+                  <div class="flex flex-col items-end gap-2 shrink-0">
+                    <span class="px-2.5 py-1 rounded-xl border text-[11px] font-bold ${badgeStyle}">${log.fluency}</span>
+                    <button onclick="deleteMengajiLog('${log.id}')" class="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition-colors" title="Hapus catatan">
+                      <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function openMengajiModal() {
+      const eligibleStudents = appState.students.filter(s => s.program === 'mengaji' || s.program === 'keduanya');
+      const listToUse = eligibleStudents.length > 0 ? eligibleStudents : appState.students;
+
+      openModal('Catat Progres Mengaji', 'book-open', 'bg-emerald-100 text-emerald-600', `
+        <form onsubmit="saveMengajiLog(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Pilih Murid</label>
+            <select id="ngaji-student-id" onchange="prefillStudentMengajiLevel()" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-emerald-500 focus:outline-none">
+              ${listToUse.map(s => `<option value="${s.id}" data-level="${s.mengajiLevel || 'Iqro 1'}">${s.name} (${s.mengajiLevel || 'Iqro 1'})</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Jilid Iqro / Juz</label>
+              <select id="ngaji-level" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-emerald-500 focus:outline-none">
+                <option value="Iqro 1">Iqro 1</option>
+                <option value="Iqro 2">Iqro 2</option>
+                <option value="Iqro 3">Iqro 3</option>
+                <option value="Iqro 4">Iqro 4</option>
+                <option value="Iqro 5">Iqro 5</option>
+                <option value="Iqro 6">Iqro 6</option>
+                <option value="Al-Qur'an Juz 1">Al-Qur'an Juz 1</option>
+                <option value="Al-Qur'an Juz 2">Al-Qur'an Juz 2</option>
+                <option value="Al-Qur'an Juz 3">Al-Qur'an Juz 3</option>
+                <option value="Al-Qur'an Juz 4">Al-Qur'an Juz 4</option>
+                <option value="Al-Qur'an Juz 5">Al-Qur'an Juz 5</option>
+                <option value="Juz Amma (Juz 30)">Juz Amma (Juz 30)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Halaman / Surat & Ayat</label>
+              <input type="text" id="ngaji-page" required placeholder="Misal: Hal 14-15" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-emerald-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Penilaian Kelancaran & Tajwid</label>
+            <div class="grid grid-cols-3 gap-2">
+              <label class="cursor-pointer">
+                <input type="radio" name="ngaji-fluency" value="Lancar" checked class="peer sr-only" />
+                <div class="text-center py-2.5 px-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 transition-all">Lancar</div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="ngaji-fluency" value="Perlu Bimbingan" class="peer sr-only" />
+                <div class="text-center py-2.5 px-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-600 peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500 transition-all">Bimbingan</div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="ngaji-fluency" value="Ulang" class="peer sr-only" />
+                <div class="text-center py-2.5 px-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-600 peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-rose-600 transition-all">Ulang</div>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Catatan Ustadzah / Pengajar</label>
+            <textarea id="ngaji-notes" rows="2" placeholder="Misal: Makhraj huruf sudah bagus, lanjut halaman berikutnya." class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-emerald-500 focus:outline-none"></textarea>
+          </div>
+
+          <button type="submit" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 transition-all active:scale-98">
+            Simpan Progres Mengaji
+          </button>
+        </form>
+      `);
+
+      prefillStudentMengajiLevel();
+    }
+
+    function prefillStudentMengajiLevel() {
+      const sel = document.getElementById('ngaji-student-id');
+      const levelSel = document.getElementById('ngaji-level');
+      if (!sel || !levelSel) return;
+      const opt = sel.options[sel.selectedIndex];
+      const lvl = opt ? opt.getAttribute('data-level') : '';
+      if (lvl && Array.from(levelSel.options).some(o => o.value === lvl)) {
+        levelSel.value = lvl;
+      }
+    }
+
+    function saveMengajiLog(e) {
+      e.preventDefault();
+      const studentId = document.getElementById('ngaji-student-id').value;
+      const juzOrIqro = document.getElementById('ngaji-level').value;
+      const pageOrVerse = document.getElementById('ngaji-page').value.trim();
+      const fluency = document.querySelector('input[name="ngaji-fluency"]:checked').value;
+      const notes = document.getElementById('ngaji-notes').value.trim();
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+      appState.mengajiLogs.push({
+        id: 'ngaji_' + Date.now(),
+        studentId,
+        date: selectedDate,
+        time: timeStr,
+        juzOrIqro,
+        pageOrVerse,
+        fluency,
+        notes
+      });
+
+      // Update student's latest mengaji level automatically
+      const student = appState.students.find(s => s.id === studentId);
+      if (student) {
+        student.mengajiLevel = juzOrIqro;
+      }
+
+      // Otomatis tandai hadir mengaji pada tanggal aktif jika belum diabsen
+      if (!appState.attendance[selectedDate]) {
+        appState.attendance[selectedDate] = { mengaji: {}, les: {} };
+      }
+      if (!appState.attendance[selectedDate].mengaji[studentId]) {
+        appState.attendance[selectedDate].mengaji[studentId] = 'hadir';
+      }
+
+      saveData();
+      closeModal();
+      showToast('Progres mengaji berhasil disimpan!', 'success');
+      renderCurrentView();
+    }
+
+    function deleteMengajiLog(id) {
+      appState.mengajiLogs = appState.mengajiLogs.filter(l => l.id !== id);
+      saveData();
+      showToast('Catatan mengaji dihapus', 'info');
+      renderCurrentView();
+    }
+
+    // ------------------------------------------------------------------
+    // 8. VIEW: KEHADIRAN (ATTENDANCE)
+    // ------------------------------------------------------------------
+    function renderAttendanceView() {
+      const isMengaji = attendanceSessionTab === 'mengaji';
+      const studentsList = appState.students.filter(s =>
+        isMengaji
+          ? (s.program === 'mengaji' || s.program === 'keduanya')
+          : (s.program === 'les' || s.program === 'keduanya')
+      );
+
+      const dayAtt = (appState.attendance[selectedDate] && appState.attendance[selectedDate][attendanceSessionTab]) || {};
+      const countHadir = Object.values(dayAtt).filter(v => v === 'hadir').length;
+
+      return `
+        <div class="view-section space-y-4">
+          <!-- Session Switcher Tabs -->
+          <div class="bg-white p-1.5 rounded-2xl border border-slate-200/80 shadow-card grid grid-cols-2 gap-1.5">
+            <button onclick="switchAttendanceSession('mengaji')" class="py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${isMengaji ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}">
+              <i data-lucide="book-open" class="w-4 h-4"></i> Sesi Mengaji
+            </button>
+            <button onclick="switchAttendanceSession('les')" class="py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${!isMengaji ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}">
+              <i data-lucide="book-marked" class="w-4 h-4"></i> Sesi Les & Bimbel
+            </button>
+          </div>
+
+          <!-- Summary & Quick Bulk Action Bar -->
+          <div class="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-card flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p class="text-xs font-bold text-slate-800">Presensi ${isMengaji ? 'Mengaji' : 'Les & Bimbel'}</p>
+              <p class="text-[11px] text-slate-500">Hadir: <strong class="${isMengaji ? 'text-emerald-600' : 'text-blue-600'}">${countHadir}</strong> dari ${studentsList.length} murid</p>
+            </div>
+            <button onclick="markAllPresent()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 text-xs font-bold transition-colors flex items-center gap-1.5">
+              <i data-lucide="check-check" class="w-3.5 h-3.5"></i> Hadirkan Semua
+            </button>
+          </div>
+
+          <!-- Student Attendance Cards -->
+          <div class="space-y-2.5">
+            ${studentsList.map(st => {
+              const status = dayAtt[st.id] || '';
+              return `
+                <div class="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full ${isMengaji ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700'} font-extrabold text-xs flex items-center justify-center shrink-0">
+                      ${getInitials(st.name)}
+                    </div>
+                    <div>
+                      <h4 class="text-xs sm:text-sm font-bold text-slate-800">${st.name}</h4>
+                      <p class="text-[11px] text-slate-500">${st.level} ${isMengaji && st.mengajiLevel !== '-' ? `· ${st.mengajiLevel}` : ''}</p>
+                    </div>
+                  </div>
+
+                  <!-- 4 Status Buttons -->
+                  <div class="grid grid-cols-4 gap-1.5 sm:w-64">
+                    ${renderAttStatusBtn(st.id, 'hadir', 'Hadir', status, 'bg-emerald-600 text-white border-emerald-600', 'hover:bg-emerald-50 text-slate-600')}
+                    ${renderAttStatusBtn(st.id, 'izin', 'Izin', status, 'bg-amber-500 text-white border-amber-500', 'hover:bg-amber-50 text-slate-600')}
+                    ${renderAttStatusBtn(st.id, 'sakit', 'Sakit', status, 'bg-sky-500 text-white border-sky-500', 'hover:bg-sky-50 text-slate-600')}
+                    ${renderAttStatusBtn(st.id, 'alpa', 'Alpa', status, 'bg-rose-600 text-white border-rose-600', 'hover:bg-rose-50 text-slate-600')}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAttStatusBtn(studentId, value, label, currentVal, activeClasses, inactiveClasses) {
+      const isActive = currentVal === value;
+      return `
+        <button onclick="setStudentAttendance('${studentId}', '${value}')" class="py-1.5 px-1 rounded-xl border text-[11px] font-bold transition-all active:scale-95 ${isActive ? activeClasses : `border-slate-200 bg-slate-50/70 ${inactiveClasses}`}">
+          ${label}
+        </button>
+      `;
+    }
+
+    function switchAttendanceSession(session) {
+      attendanceSessionTab = session;
+      renderCurrentView();
+    }
+
+    function setStudentAttendance(studentId, status) {
+      if (!appState.attendance[selectedDate]) {
+        appState.attendance[selectedDate] = { mengaji: {}, les: {} };
+      }
+      const current = appState.attendance[selectedDate][attendanceSessionTab][studentId];
+      // Toggle off if clicked again
+      if (current === status) {
+        delete appState.attendance[selectedDate][attendanceSessionTab][studentId];
+      } else {
+        appState.attendance[selectedDate][attendanceSessionTab][studentId] = status;
+      }
+      saveData();
+      renderCurrentView();
+    }
+
+    function markAllPresent() {
+      const isMengaji = attendanceSessionTab === 'mengaji';
+      const studentsList = appState.students.filter(s =>
+        isMengaji
+          ? (s.program === 'mengaji' || s.program === 'keduanya')
+          : (s.program === 'les' || s.program === 'keduanya')
+      );
+
+      if (!appState.attendance[selectedDate]) {
+        appState.attendance[selectedDate] = { mengaji: {}, les: {} };
+      }
+
+      studentsList.forEach(s => {
+        appState.attendance[selectedDate][attendanceSessionTab][s.id] = 'hadir';
+      });
+
+      saveData();
+      showToast(`Semua murid (${studentsList.length}) ditandai Hadir!`, 'success');
+      renderCurrentView();
+    }
+
+    // ------------------------------------------------------------------
+    // 9. VIEW: LAPORAN & WHATSAPP GENERATOR
+    // ------------------------------------------------------------------
+    function renderReportView() {
+      // Calculate monthly attendance & logs
+      const monthPrefix = reportFilterMonth; // YYYY-MM
+      let totalMengajiHadir = 0;
+      let totalLesHadir = 0;
+
+      Object.entries(appState.attendance).forEach(([dateKey, sessions]) => {
+        if (dateKey.startsWith(monthPrefix)) {
+          totalMengajiHadir += Object.values(sessions.mengaji || {}).filter(v => v === 'hadir').length;
+          totalLesHadir += Object.values(sessions.les || {}).filter(v => v === 'hadir').length;
+        }
+      });
+
+      const monthMengajiLogs = appState.mengajiLogs.filter(l => l.date.startsWith(monthPrefix));
+      const monthLesLogs = appState.lesLogs.filter(l => l.date.startsWith(monthPrefix));
+
+      return `
+        <div class="view-section space-y-5">
+          <!-- Month Filter & Export Header -->
+          <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-card space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="text-base sm:text-lg font-extrabold text-slate-800">Laporan & Rekapitulasi</h2>
+                <p class="text-xs text-slate-500">Ringkasan kehadiran & progres per murid</p>
+              </div>
+              <input type="month" value="${reportFilterMonth}" onchange="changeReportMonth(this.value)" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-indigo-500" />
+            </div>
+
+            <!-- 4 Mini Metrics -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div class="bg-emerald-50/70 border border-emerald-100 rounded-2xl p-3">
+                <p class="text-[11px] font-semibold text-emerald-800">Hadir Mengaji</p>
+                <p class="text-xl font-extrabold text-emerald-600 mt-0.5">${totalMengajiHadir}</p>
+              </div>
+              <div class="bg-blue-50/70 border border-blue-100 rounded-2xl p-3">
+                <p class="text-[11px] font-semibold text-blue-800">Hadir Les</p>
+                <p class="text-xl font-extrabold text-blue-600 mt-0.5">${totalLesHadir}</p>
+              </div>
+              <div class="bg-teal-50/70 border border-teal-100 rounded-2xl p-3">
+                <p class="text-[11px] font-semibold text-teal-800">Setoran Ngaji</p>
+                <p class="text-xl font-extrabold text-teal-600 mt-0.5">${monthMengajiLogs.length}</p>
+              </div>
+              <div class="bg-violet-50/70 border border-violet-100 rounded-2xl p-3">
+                <p class="text-[11px] font-semibold text-violet-800">Catatan Les</p>
+                <p class="text-xl font-extrabold text-violet-600 mt-0.5">${monthLesLogs.length}</p>
+              </div>
+            </div>
+
+            <!-- Copy Daily WhatsApp Summary Button -->
+            <button onclick="copyDailyWhatsAppReport()" class="w-full py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 active:scale-98 transition-all">
+              <i data-lucide="share-2" class="w-4 h-4"></i> Salin Laporan Harian (${formatIndonesianDate(selectedDate).split(',')[0]}) untuk WhatsApp
+            </button>
+          </div>
+
+          <!-- Per-Student Progress & Individual WhatsApp Report -->
+          <div class="space-y-2.5">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Laporan Individual Wali Murid</h3>
+            ${appState.students.map(st => {
+              let hadirNgaji = 0;
+              let hadirLes = 0;
+              Object.entries(appState.attendance).forEach(([d, s]) => {
+                if (d.startsWith(monthPrefix)) {
+                  if (s.mengaji && s.mengaji[st.id] === 'hadir') hadirNgaji++;
+                  if (s.les && s.les[st.id] === 'hadir') hadirLes++;
+                }
+              });
+
+              const lastNgaji = appState.mengajiLogs.filter(l => l.studentId === st.id).slice(-1)[0];
+              const lastLes = appState.lesLogs.filter(l => l.studentId === st.id).slice(-1)[0];
+
+              return `
+                <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-card flex items-center justify-between gap-3">
+                  <div class="space-y-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <h4 class="text-xs sm:text-sm font-bold text-slate-800 truncate">${st.name}</h4>
+                    </div>
+                    <p class="text-[11px] text-slate-500">
+                      Hadir Bulan Ini: <strong class="text-emerald-600">${hadirNgaji}x Ngaji</strong> · <strong class="text-blue-600">${hadirLes}x Les</strong>
+                    </p>
+                    <p class="text-[11px] text-slate-500 truncate">
+                      Capaian: ${lastNgaji ? `${lastNgaji.juzOrIqro} (${lastNgaji.pageOrVerse})` : (st.mengajiLevel !== '-' ? st.mengajiLevel : 'Belum ada')}
+                      ${lastLes ? ` | ${lastLes.subject}` : ''}
+                    </p>
+                  </div>
+
+                  <button onclick="copyStudentWhatsAppReport('${st.id}')" class="shrink-0 px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 text-xs font-bold flex items-center gap-1.5 transition-colors">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin WA
+                  </button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function changeReportMonth(val) {
+      if (val) {
+        reportFilterMonth = val;
+        renderCurrentView();
+      }
+    }
+
+    function copyTextFallback(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('Laporan berhasil disalin! Siap ditempel di WhatsApp.', 'success');
+      } catch (err) {
+        showToast('Gagal menyalin teks laporan', 'error');
+      }
+      document.body.removeChild(ta);
+    }
+
+    function copyDailyWhatsAppReport() {
+      const { institutionName, teacherName } = appState.settings;
+      const dateStr = formatIndonesianDate(selectedDate);
+      const dayAtt = appState.attendance[selectedDate] || { mengaji: {}, les: {} };
+      const hadirMengaji = Object.values(dayAtt.mengaji || {}).filter(v => v === 'hadir').length;
+      const hadirLes = Object.values(dayAtt.les || {}).filter(v => v === 'hadir').length;
+
+      const text = `*LAPORAN HARIAN ${institutionName.toUpperCase()}*\n` +
+        `Tanggal: ${dateStr}\n` +
+        `Pengajar: ${teacherName}\n\n` +
+        `📊 *Ringkasan Kehadiran:*\n` +
+        `• Hadir Mengaji: ${hadirMengaji} murid\n` +
+        `• Hadir Les & Bimbel: ${hadirLes} murid\n\n` +
+        `Terima kasih atas kerja sama Ayah & Bunda. 🙏`;
+
+      copyTextFallback(text);
+    }
+
+    function copyStudentWhatsAppReport(studentId) {
+      const st = appState.students.find(s => s.id === studentId);
+      if (!st) return;
+      const { institutionName, teacherName } = appState.settings;
+      const lastNgaji = appState.mengajiLogs.filter(l => l.studentId === st.id).slice(-1)[0];
+      const lastLes = appState.lesLogs.filter(l => l.studentId === st.id).slice(-1)[0];
+
+      let text = `*LAPORAN PERKEMBANGAN MURID*\n` +
+        `Lembaga: ${institutionName}\n` +
+        `Nama Murid: *${st.name}* (${st.level})\n` +
+        `Tanggal: ${formatIndonesianDate(selectedDate)}\n\n`;
+
+      if (lastNgaji) {
+        text += `📖 *Progres Mengaji:*\n` +
+          `• Bacaan: ${lastNgaji.juzOrIqro} (${lastNgaji.pageOrVerse})\n` +
+          `• Kelancaran: ${lastNgaji.fluency}\n` +
+          (lastNgaji.notes ? `• Catatan: ${lastNgaji.notes}\n\n` : `\n`);
+      } else if (st.mengajiLevel && st.mengajiLevel !== '-') {
+        text += `📖 *Level Mengaji Saat Ini:* ${st.mengajiLevel}\n\n`;
+      }
+
+      if (lastLes) {
+        text += `📚 *Progres Les & Bimbel:*\n` +
+          `• Mapel: ${lastLes.subject} (${lastLes.topic})\n` +
+          (lastLes.score ? `• Nilai Latihan: ${lastLes.score}\n` : '') +
+          (lastLes.notes ? `• Catatan: ${lastLes.notes}\n\n` : `\n`);
+      }
+
+      text += `Salam hangat,\n*${teacherName}*`;
+      copyTextFallback(text);
+    }
+
+    // ------------------------------------------------------------------
+    // 10. VIEW: DATA MURID (CRUD + FILTER + SEARCH)
+    // ------------------------------------------------------------------
+    function renderStudentsView() {
+      const filtered = appState.students.filter(st => {
+        const matchQuery = st.name.toLowerCase().includes(studentSearchQuery.toLowerCase()) ||
+                           st.level.toLowerCase().includes(studentSearchQuery.toLowerCase());
+        const matchProg = studentFilterProgram === 'semua' || st.program === studentFilterProgram;
+        return matchQuery && matchProg;
+      });
+
+      return `
+        <div class="view-section space-y-4">
+          <!-- Search & Add Student Bar -->
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input type="text" value="${studentSearchQuery}" oninput="handleStudentSearch(this.value)" placeholder="Cari nama atau kelas murid..." class="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white border border-slate-200/80 text-xs sm:text-sm font-medium focus:outline-none focus:border-indigo-500 shadow-xs" />
+            </div>
+            <button onclick="openStudentModal()" class="shrink-0 inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/20 active:scale-95 transition-all">
+              <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah
+            </button>
+          </div>
+
+          <!-- Filter Program Chips -->
+          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            ${renderProgramFilterChip('semua', `Semua (${appState.students.length})`)}
+            ${renderProgramFilterChip('mengaji', 'Mengaji')}
+            ${renderProgramFilterChip('les', 'Les & Bimbel')}
+            ${renderProgramFilterChip('keduanya', 'Keduanya')}
+          </div>
+
+          <!-- Student Cards -->
+          <div class="space-y-2.5">
+            ${filtered.length === 0 ? `
+              <div class="bg-white rounded-3xl p-8 text-center border border-slate-100 shadow-card">
+                <p class="text-sm font-bold text-slate-700">Murid tidak ditemukan</p>
+                <p class="text-xs text-slate-500 mt-1">Coba ubah kata kunci pencarian atau filter program.</p>
+              </div>
+            ` : filtered.map(st => `
+              <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-card flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-100 text-indigo-700 font-extrabold text-xs flex items-center justify-center shrink-0 border border-indigo-100">
+                    ${getInitials(st.name)}
+                  </div>
+                  <div class="min-w-0">
+                    <h4 class="text-xs sm:text-sm font-bold text-slate-800 truncate">${st.name}</h4>
+                    <div class="flex items-center gap-2 flex-wrap mt-1">
+                      <span class="text-[11px] font-medium text-slate-500">${st.level}</span>
+                      ${st.mengajiLevel && st.mengajiLevel !== '-' ? `<span class="text-[11px] font-semibold text-emerald-600">• ${st.mengajiLevel}</span>` : ''}
+                    </div>
+                    <div class="mt-1.5">${getProgramBadge(st.program)}</div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-1 shrink-0">
+                  <button onclick="openStudentModal('${st.id}')" class="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 transition-colors" title="Edit Murid">
+                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                  </button>
+                  <button onclick="confirmDeleteStudent('${st.id}')" class="p-2 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 transition-colors" title="Hapus Murid">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderProgramFilterChip(val, label) {
+      const active = studentFilterProgram === val;
+      return `
+        <button onclick="setStudentProgramFilter('${val}')" class="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all ${active ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+          ${label}
+        </button>
+      `;
+    }
+
+    function handleStudentSearch(q) {
+      studentSearchQuery = q;
+      renderCurrentView();
+    }
+
+    function setStudentProgramFilter(prog) {
+      studentFilterProgram = prog;
+      renderCurrentView();
+    }
+
+    function openStudentModal(editId = null) {
+      const st = editId ? appState.students.find(s => s.id === editId) : null;
+      const title = st ? 'Edit Data Murid' : 'Tambah Murid Baru';
+
+      openModal(title, st ? 'user-cog' : 'user-plus', 'bg-indigo-100 text-indigo-600', `
+        <form onsubmit="saveStudentForm(event, '${editId || ''}')" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Lengkap Murid</label>
+            <input type="text" id="st-name" required value="${st ? st.name : ''}" placeholder="Misal: Ahmad Zaki Pratama" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-indigo-500 focus:outline-none" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Jenjang / Kelas</label>
+              <input type="text" id="st-level" required value="${st ? st.level : 'SD Kelas 1'}" placeholder="SD Kelas 2 / TK B" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-indigo-500 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Program Diikuti</label>
+              <select id="st-program" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-indigo-500 focus:outline-none">
+                <option value="mengaji" ${st && st.program === 'mengaji' ? 'selected' : ''}>Mengaji Saja</option>
+                <option value="les" ${st && st.program === 'les' ? 'selected' : ''}>Les & Bimbel Saja</option>
+                <option value="keduanya" ${!st || st.program === 'keduanya' ? 'selected' : ''}>Mengaji & Les</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Capaian Mengaji Awal</label>
+              <input type="text" id="st-ngaji-level" value="${st ? st.mengajiLevel : 'Iqro 1'}" placeholder="Iqro 1 / Juz 1 / -" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-indigo-500 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">No. WA Wali Murid</label>
+              <input type="tel" id="st-phone" value="${st ? st.parentPhone : ''}" placeholder="0812xxxxxxxx" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-indigo-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-600/20 transition-all active:scale-98">
+            ${st ? 'Simpan Perubahan' : 'Daftarkan Murid'}
+          </button>
+        </form>
+      `);
+    }
+
+    function saveStudentForm(e, editId) {
+      e.preventDefault();
+      const name = document.getElementById('st-name').value.trim();
+      const level = document.getElementById('st-level').value.trim();
+      const program = document.getElementById('st-program').value;
+      const mengajiLevel = document.getElementById('st-ngaji-level').value.trim() || '-';
+      const parentPhone = document.getElementById('st-phone').value.trim();
+
+      if (editId) {
+        const idx = appState.students.findIndex(s => s.id === editId);
+        if (idx !== -1) {
+          appState.students[idx] = { ...appState.students[idx], name, level, program, mengajiLevel, parentPhone };
+        }
+        showToast('Data murid berhasil diperbarui!', 'success');
+      } else {
+        appState.students.unshift({
+          id: 's_' + Date.now(),
+          name,
+          level,
+          program,
+          mengajiLevel,
+          parentPhone,
+          active: true
+        });
+        showToast('Murid baru berhasil ditambahkan!', 'success');
+      }
+
+      saveData();
+      closeModal();
+      renderCurrentView();
+    }
+
+    function confirmDeleteStudent(studentId) {
+      const st = appState.students.find(s => s.id === studentId);
+      if (!st) return;
+
+      openModal('Hapus Data Murid?', 'alert-triangle', 'bg-rose-100 text-rose-600', `
+        <div class="space-y-4">
+          <p class="text-sm text-slate-600">Apakah Anda yakin ingin menghapus <strong>${st.name}</strong> dari daftar murid aktif? Tindakan ini tidak dapat dibatalkan.</p>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button onclick="closeModal()" class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs">Batal</button>
+            <button onclick="executeDeleteStudent('${studentId}')" class="py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs">Ya, Hapus</button>
+          </div>
+        </div>
+      `);
+    }
+
+    function executeDeleteStudent(studentId) {
+      appState.students = appState.students.filter(s => s.id !== studentId);
+      saveData();
+      closeModal();
+      showToast('Data murid telah dihapus', 'info');
+      renderCurrentView();
+    }
+
+    // ------------------------------------------------------------------
+    // 11. VIEW: PENGATURAN & BACKUP JSON
+    // ------------------------------------------------------------------
+    function renderSettingsView() {
+      const { teacherName, institutionName } = appState.settings;
+      return `
+        <div class="view-section space-y-5">
+          <!-- Profile Settings Form -->
+          <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-card space-y-4">
+            <div class="flex items-center gap-3 pb-2 border-b border-slate-100">
+              <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <i data-lucide="user-pen" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h2 class="text-base font-extrabold text-slate-800">Identitas Pengajar & Lembaga</h2>
+                <p class="text-xs text-slate-500">Tampil di halaman utama & kop laporan WhatsApp</p>
+              </div>
+            </div>
+
+            <form onsubmit="saveProfileSettings(event)" class="space-y-3.5">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lembaga / Taman Belajar</label>
+                <input type="text" id="set-institution" required value="${institutionName}" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-indigo-500 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Pengajar / Ustadzah</label>
+                <input type="text" id="set-teacher" required value="${teacherName}" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium focus:bg-white focus:border-indigo-500 focus:outline-none" />
+              </div>
+              <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-600/20 transition-all">
+                Simpan Pengaturan Profil
+              </button>
+            </form>
+          </div>
+
+          <!-- Backup & Restore JSON -->
+          <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-card space-y-4">
+            <div class="flex items-center gap-3 pb-2 border-b border-slate-100">
+              <div class="w-10 h-10 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center">
+                <i data-lucide="database-backup" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h2 class="text-base font-extrabold text-slate-800">Cadangkan & Pulihkan Data</h2>
+                <p class="text-xs text-slate-500">Simpan cadangan database ke file JSON agar aman</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button onclick="exportDataJSON()" class="py-3 px-4 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all">
+                <i data-lucide="download" class="w-4 h-4"></i> Ekspor Backup (.JSON)
+              </button>
+
+              <label class="py-3 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all">
+                <i data-lucide="upload" class="w-4 h-4"></i> Impor / Restore JSON
+                <input type="file" accept=".json" onchange="importDataJSON(event)" class="hidden" />
+              </label>
+            </div>
+          </div>
+
+          <!-- Reset Zone -->
+          <div class="bg-rose-50/60 rounded-3xl p-5 border border-rose-100 flex items-center justify-between gap-3">
+            <div>
+              <h3 class="text-xs sm:text-sm font-bold text-rose-900">Reset ke Data Awal</h3>
+              <p class="text-[11px] text-rose-700/80 mt-0.5">Mengembalikan 15 murid contoh & menghapus catatan baru</p>
+            </div>
+            <button onclick="confirmResetApp()" class="shrink-0 px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs transition-all">
+              Reset Data
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function saveProfileSettings(e) {
+      e.preventDefault();
+      appState.settings.institutionName = document.getElementById('set-institution').value.trim() || 'Taman Belajar';
+      appState.settings.teacherName = document.getElementById('set-teacher').value.trim() || 'Khasanah';
+      saveData();
+      showToast('Profil pengajar & lembaga diperbarui!', 'success');
+    }
+
+    function exportDataJSON() {
+      const blob = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup-taman-belajar-${getTodayISO()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('File backup JSON berhasil diunduh!', 'success');
+    }
+
+    function importDataJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed && parsed.students && parsed.settings) {
+            appState = parsed;
+            saveData();
+            showToast('Data berhasil dipulihkan dari file backup!', 'success');
+            navigateTo('beranda');
+          } else {
+            showToast('Format file JSON tidak valid.', 'error');
+          }
+        } catch (err) {
+          showToast('Gagal membaca file JSON.', 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function confirmResetApp() {
+      openModal('Reset Semua Data?', 'rotate-ccw', 'bg-rose-100 text-rose-600', `
+        <div class="space-y-4">
+          <p class="text-sm text-slate-600">Seluruh perubahan akan dihapus dan dikembalikan ke pengaturan awal (15 murid contoh). Lanjutkan?</p>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button onclick="closeModal()" class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs">Batal</button>
+            <button onclick="executeResetApp()" class="py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs">Ya, Reset Sekarang</button>
+          </div>
+        </div>
+      `);
+    }
+
+    function executeResetApp() {
+      appState = createDefaultData();
+      selectedDate = getTodayISO();
+      saveData();
+      closeModal();
+      showToast('Aplikasi telah dikembalikan ke data awal', 'info');
+      navigateTo('beranda');
+    }
+
+    // ------------------------------------------------------------------
+    // 12. MODAL & TOAST UI UTILITIES
+    // ------------------------------------------------------------------
+    function openModal(title, iconName, iconClasses, bodyHTML) {
+      document.getElementById('modal-title').textContent = title;
+      const iconWrap = document.getElementById('modal-icon-wrap');
+      iconWrap.className = `w-9 h-9 rounded-xl flex items-center justify-center ${iconClasses}`;
+      iconWrap.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5"></i>`;
+      document.getElementById('modal-body').innerHTML = bodyHTML;
+
+      const container = document.getElementById('modal-container');
+      container.classList.remove('hidden');
+      container.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function closeModal() {
+      const container = document.getElementById('modal-container');
+      container.classList.add('hidden');
+      container.classList.remove('flex');
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('modal-container').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const colors = {
+        success: 'bg-slate-900 text-white border-slate-700',
+        error: 'bg-rose-600 text-white border-rose-500',
+        info: 'bg-indigo-600 text-white border-indigo-500'
+      };
+      const icons = {
+        success: 'check-circle-2',
+        error: 'alert-circle',
+        info: 'info'
+      };
+
+      toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl border shadow-xl text-xs font-bold transition-all duration-300 transform translate-y-0 ${colors[type] || colors.success}`;
+      toast.innerHTML = `<i data-lucide="${icons[type] || 'check-circle-2'}" class="w-4 h-4 shrink-0"></i><span>${message}</span>`;
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 2600);
+    }
+
+    // ------------------------------------------------------------------
+    // 13. INITIALIZATION & EVENT LISTENERS
+    // ------------------------------------------------------------------
+    document.getElementById('active-date-input').addEventListener('change', function(e) {
+      if (e.target.value) {
+        selectedDate = e.target.value;
+        updateTopSummary();
+        renderCurrentView();
+        showToast(`Tanggal aktif: ${formatIndonesianDate(selectedDate)}`, 'info');
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      updateTopSummary();
+      navigateTo('beranda');
+    });
+  </script>
+</body>
+</html>
