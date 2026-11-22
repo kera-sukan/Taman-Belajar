@@ -3,15 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Taman Belajar - Sistem Manajemen & Laporan</title>
+  <title>Taman Belajar - Belajar • Mengaji • Berkembang</title>
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#2563eb" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <style>
-    * { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: #e2e8f0; }
+    * {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #e2e8f0;
+    }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
@@ -21,55 +31,142 @@
   <!-- CONTAINER UTAMA MOBILE-FIRST -->
   <div id="app-shell" class="w-full max-w-md h-full bg-slate-50 shadow-2xl flex flex-col relative overflow-hidden">
 
-    <!-- ==================== 1. GERBANG LOGIN WAJIB ==================== -->
-    <div id="login-screen" class="absolute inset-0 z-50 bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 flex flex-col justify-between p-6 overflow-y-auto">
-      <div class="pt-6 text-center text-white">
-        <div class="w-16 h-16 mx-auto bg-white/15 rounded-2xl flex items-center justify-center border border-white/25 shadow-lg mb-3">
-          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+    <!-- ==================== 1. GERBANG LOGIN & SIGN UP ==================== -->
+    <div id="auth-screen" class="absolute inset-0 z-50 bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 flex flex-col justify-between p-5 overflow-y-auto no-scrollbar">
+      <div class="pt-2 text-center text-white shrink-0">
+        <div class="w-14 h-14 mx-auto bg-white/15 rounded-2xl flex items-center justify-center border border-white/25 shadow-lg mb-2.5">
+          <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
         </div>
-        <h1 class="text-2xl font-extrabold tracking-tight">Taman Belajar</h1>
-        <p class="text-xs text-blue-100 mt-1">Belajar • Mengaji • Berkembang</p>
+        <h1 class="text-xl font-extrabold tracking-tight">Taman Belajar</h1>
+        <p class="text-[11px] text-blue-100 mt-0.5">Belajar • Mengaji • Berkembang</p>
       </div>
 
-      <div class="bg-white rounded-3xl p-6 shadow-xl my-auto">
-        <div class="mb-5">
-          <h2 class="text-lg font-bold text-slate-800">Masuk Aplikasi</h2>
-          <p class="text-xs text-slate-500 mt-0.5">Silakan masukkan Username atau Nomor ID dan PIN.</p>
+      <div class="bg-white rounded-3xl p-5 shadow-xl my-3 space-y-4 relative z-10">
+        <!-- Switcher Tab Login / Sign Up -->
+        <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-2xl relative z-20">
+          <button type="button" id="auth-tab-login" onclick="switchAuthMode('login')"
+            class="py-2.5 text-xs font-extrabold rounded-xl bg-blue-600 text-white shadow-sm transition cursor-pointer select-none">
+            Masuk (Login)
+          </button>
+          <button type="button" id="auth-tab-signup" onclick="switchAuthMode('signup')"
+            class="py-2.5 text-xs font-extrabold rounded-xl text-slate-600 hover:text-slate-800 transition cursor-pointer select-none">
+            Daftar (Sign Up)
+          </button>
         </div>
 
-        <div class="space-y-4">
+        <!-- MODE LOGIN -->
+        <div id="login-panel" class="space-y-3.5">
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Username / Nomor ID</label>
-            <input type="text" id="login-username" autocomplete="off" placeholder="Contoh: user atau nomor ID"
-              onkeydown="if(event.key==='Enter'){event.preventDefault();handleLogin();}"
-              class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
+            <h2 class="text-base font-extrabold text-slate-800">Masuk Aplikasi</h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">Masukkan Username atau Nomor ID dan PIN akun Anda.</p>
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">PIN Akses</label>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Username / Nomor ID</label>
+            <input type="text" id="login-username" autocomplete="off" placeholder="Contoh: user atau nomor ID"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();handleLogin();}"
+              class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">PIN Akses</label>
             <div class="relative">
               <input type="password" id="login-pin" inputmode="numeric" placeholder="Masukkan PIN"
                 onkeydown="if(event.key==='Enter'){event.preventDefault();handleLogin();}"
-                class="w-full pl-3.5 pr-11 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
-              <button type="button" onclick="togglePinVisibility('login-pin')" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 text-xs font-bold px-1 py-0.5">
+                class="w-full pl-3.5 pr-12 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
+              <button type="button" onclick="togglePinVisibility('login-pin')" class="absolute right-3 top-2 text-slate-400 hover:text-slate-600 text-[11px] font-bold px-1 py-0.5">
                 Lihat
               </button>
             </div>
           </div>
 
-          <p id="login-error" class="hidden text-xs font-medium text-rose-600 bg-rose-50 px-3 py-2 rounded-lg border border-rose-100"></p>
+          <p id="login-error" class="hidden text-xs font-semibold text-rose-600 bg-rose-50 px-3 py-2 rounded-xl border border-rose-200"></p>
 
           <button type="button" onclick="handleLogin()"
-            class="w-full py-3 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-sm rounded-xl shadow-md transition">
+            class="w-full py-3 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer">
             Masuk Sekarang
+          </button>
+        </div>
+
+        <!-- MODE SIGN UP (TANPA INPUT NO INDUK — OTOMATIS DARI DATABASE SAAT DISETUJUI ADMIN) -->
+        <div id="signup-panel" class="hidden space-y-3">
+          <div>
+            <h2 class="text-base font-extrabold text-slate-800">Daftar Akun User Baru</h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">Nomor Induk dibuat otomatis sesuai urutan database setelah disetujui Admin.</p>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Nama Lengkap *</label>
+            <input type="text" id="signup-name" placeholder="Contoh: Ibu Fatimah / Ustadz Ali"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Username *</label>
+              <input type="text" id="signup-username" autocomplete="off" placeholder="username_anda"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">PIN Login (4–6 Digit) *</label>
+              <input type="password" id="signup-pin" inputmode="numeric" maxlength="8" placeholder="1234"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Kategori User *</label>
+            <select id="signup-role" onchange="toggleSignupWaliFields()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold">
+              <option value="wali">Orang Tua / Wali Murid (User)</option>
+              <option value="guru">Guru Pengajar (User)</option>
+            </select>
+          </div>
+
+          <div id="signup-wali-fields" class="space-y-2.5 bg-indigo-50/70 p-3 rounded-2xl border border-indigo-100">
+            <div>
+              <label class="block text-[11px] font-bold text-indigo-900 mb-1">Nama Lengkap Anak / Murid *</label>
+              <input type="text" id="signup-murid-name" placeholder="Nama anak yang didaftarkan..."
+                class="w-full px-3 py-1.5 bg-white border border-indigo-200 rounded-xl text-xs" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[11px] font-bold text-indigo-900 mb-1">Kelas / Usia Anak</label>
+                <input type="text" id="signup-murid-kelas" placeholder="SD Kelas 2"
+                  class="w-full px-3 py-1.5 bg-white border border-indigo-200 rounded-xl text-xs" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-indigo-900 mb-1">Program Belajar</label>
+                <select id="signup-murid-program" class="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-xl text-xs font-semibold">
+                  <option value="Keduanya">Mengaji & Les</option>
+                  <option value="Mengaji">Mengaji Saja</option>
+                  <option value="Les">Les Saja</option>
+                </select>
+              </div>
+            </div>
+            <p class="text-[10px] text-indigo-700 leading-snug">
+              * Nomor Induk Murid (<b>SOL...</b>) akan terbit otomatis setelah disetujui Admin.
+            </p>
+          </div>
+
+          <div id="signup-guru-note" class="hidden bg-emerald-50/80 p-3 rounded-2xl border border-emerald-100">
+            <p class="text-[10px] text-emerald-800 leading-snug">
+              * Nomor Induk Guru (<b>GRU...</b>) dan hak akses modul akan diberikan otomatis setelah disetujui Admin.
+            </p>
+          </div>
+
+          <p id="signup-feedback" class="hidden text-xs font-semibold px-3 py-2 rounded-xl border"></p>
+
+          <button type="button" onclick="handleSignUp()"
+            class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer">
+            Kirim Pendaftaran (Menunggu Izin Admin)
           </button>
         </div>
       </div>
 
-      <div class="text-center text-[11px] text-blue-100/80 pb-2">
-        Taman Belajar • Penyimpanan Lokal & Cloud Firebase
+      <div class="text-center text-[11px] text-blue-100/80 pb-1 shrink-0">
+        Taman Belajar • Sinkronisasi Otomatis Cloud Firebase
       </div>
     </div>
 
@@ -89,8 +186,12 @@
         </div>
 
         <div class="flex items-center gap-1.5 shrink-0">
+          <button type="button" id="header-pending-notif" onclick="openPendingApprovalShortcut()"
+            class="hidden px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500 text-white shadow-sm animate-pulse">
+            🔔 <span id="header-pending-count">0</span>
+          </button>
           <span id="role-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-slate-900 shadow-sm">
-            GURU
+            USER
           </span>
           <button type="button" onclick="logout()" class="px-2.5 py-1 rounded-xl bg-white/15 hover:bg-white/25 text-[11px] font-bold text-white transition">
             Keluar
@@ -98,11 +199,11 @@
         </div>
       </div>
 
-      <!-- Kartu Sambutan & Statistik Ringkas (Fixed & Compact) -->
+      <!-- Kartu Sambutan & Statistik Ringkas -->
       <div class="bg-white text-slate-800 rounded-2xl p-3 shadow-sm">
         <div class="flex items-center justify-between gap-2 mb-2.5">
           <div class="min-w-0">
-            <p class="text-xs font-bold text-slate-800 truncate">Halo, <span id="user-display-name">Khasanah</span> 👋</p>
+            <p class="text-xs font-bold text-slate-800 truncate">Halo, <span id="user-display-name">User</span> 👋</p>
             <p id="active-date-label" class="text-[10px] text-slate-500">Minggu, 22 November 2026</p>
           </div>
           <label class="relative inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200/70 text-[11px] font-semibold text-slate-700 cursor-pointer transition shrink-0">
@@ -129,55 +230,88 @@
     </header>
 
     <!-- ==================== 3. AREA KONTEN UTAMA (SCROLLABLE) ==================== -->
-    <main id="main-scroll-area" class="flex-1 overflow-y-auto px-4 pt-3.5 pb-20 space-y-4">
+    <main id="main-scroll-area" class="flex-1 overflow-y-auto px-4 pt-3.5 pb-20 space-y-4 no-scrollbar">
 
       <!-- TAB: BERANDA -->
       <section id="view-beranda" class="space-y-4">
+        <!-- Notifikasi Pendaftar Baru (EKSKLUSIF SUPER ADMIN) -->
+        <div id="pending-signup-alert" class="hidden bg-amber-50 border border-amber-300 rounded-2xl p-3.5 space-y-2.5 shadow-sm">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-amber-500 text-white text-xs font-extrabold flex items-center justify-center shrink-0">!</span>
+              <div>
+                <p class="text-xs font-extrabold text-amber-950">Permintaan Izin Pendaftaran Baru</p>
+                <p class="text-[10px] text-amber-800">Tentukan hak akses modul sebelum menyetujui User</p>
+              </div>
+            </div>
+            <span id="beranda-pending-badge" class="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-extrabold shrink-0">0</span>
+          </div>
+          <div id="beranda-pending-list" class="space-y-2"></div>
+        </div>
+
         <div id="role-info-banner" class="hidden rounded-2xl p-3 text-xs border"></div>
 
+        <!-- Menu Utama Dinamis Sesuai Checklist Izin Admin -->
         <div>
           <div class="flex items-center justify-between mb-2.5">
             <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Menu Utama</h2>
-            <span class="text-[11px] font-medium text-slate-400">6 Modul Terpadu</span>
+            <span id="cloud-live-indicator" class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              ● Cloud Otomatis
+            </span>
           </div>
 
-          <div class="grid grid-cols-2 gap-3">
-            <button type="button" onclick="switchTab('les')" class="text-left bg-blue-50/80 hover:bg-blue-50 border border-blue-100 rounded-2xl p-3.5 transition active:scale-[0.98]">
+          <div id="main-menu-grid" class="grid grid-cols-2 gap-3">
+            <button type="button" id="menu-card-les" onclick="switchTab('les')" class="text-left bg-blue-50/80 hover:bg-blue-50 border border-blue-100 rounded-2xl p-3.5 transition active:scale-[0.98]">
               <div class="w-9 h-9 rounded-xl bg-blue-600 text-white font-extrabold text-sm flex items-center justify-center mb-2 shadow-sm">📘</div>
               <p class="text-sm font-bold text-slate-800">Les & Bimbel</p>
               <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">Nilai & materi belajar</p>
             </button>
 
-            <button type="button" onclick="switchTab('mengaji')" class="text-left bg-emerald-50/80 hover:bg-emerald-50 border border-emerald-100 rounded-2xl p-3.5 transition active:scale-[0.98]">
+            <button type="button" id="menu-card-mengaji" onclick="switchTab('mengaji')" class="text-left bg-emerald-50/80 hover:bg-emerald-50 border border-emerald-100 rounded-2xl p-3.5 transition active:scale-[0.98]">
               <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white font-extrabold text-sm flex items-center justify-center mb-2 shadow-sm">📗</div>
               <p class="text-sm font-bold text-slate-800">Mengaji</p>
               <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">Iqro, Juz & kelancaran</p>
             </button>
 
-            <button type="button" onclick="switchTab('hadir')" class="text-left bg-amber-50/80 hover:bg-amber-50 border border-amber-100 rounded-2xl p-3.5 transition active:scale-[0.98]">
+            <button type="button" id="menu-card-hadir" onclick="switchTab('hadir')" class="text-left bg-amber-50/80 hover:bg-amber-50 border border-amber-100 rounded-2xl p-3.5 transition active:scale-[0.98]">
               <div class="w-9 h-9 rounded-xl bg-amber-500 text-white font-extrabold text-sm flex items-center justify-center mb-2 shadow-sm">✅</div>
               <p class="text-sm font-bold text-slate-800">Kehadiran</p>
               <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">Absensi Mengaji & Les</p>
             </button>
 
-            <button type="button" onclick="switchTab('laporan')" class="text-left bg-purple-50/80 hover:bg-purple-50 border border-purple-100 rounded-2xl p-3.5 transition active:scale-[0.98]">
+            <button type="button" id="menu-card-laporan" onclick="switchTab('laporan')" class="text-left bg-purple-50/80 hover:bg-purple-50 border border-purple-100 rounded-2xl p-3.5 transition active:scale-[0.98]">
               <div class="w-9 h-9 rounded-xl bg-purple-600 text-white font-extrabold text-sm flex items-center justify-center mb-2 shadow-sm">📄</div>
               <p class="text-sm font-bold text-slate-800">Laporan PDF</p>
               <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">Unduh PDF & kirim WA</p>
             </button>
 
-            <button type="button" onclick="switchTab('murid')" class="text-left bg-indigo-50/80 hover:bg-indigo-50 border border-indigo-100 rounded-2xl p-3.5 transition active:scale-[0.98]">
+            <button type="button" id="menu-card-murid" onclick="switchTab('murid')" class="text-left bg-indigo-50/80 hover:bg-indigo-50 border border-indigo-100 rounded-2xl p-3.5 transition active:scale-[0.98]">
               <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white font-extrabold text-sm flex items-center justify-center mb-2 shadow-sm">🎓</div>
               <p id="menu-murid-title" class="text-sm font-bold text-slate-800">Data Murid</p>
               <p id="menu-murid-sub" class="text-[11px] text-slate-500 mt-0.5 leading-snug">Nomor ID & profil anak</p>
             </button>
 
-            <button type="button" onclick="switchTab('atur')" class="text-left bg-slate-100 hover:bg-slate-200/70 border border-slate-200 rounded-2xl p-3.5 transition active:scale-[0.98]">
+            <button type="button" id="menu-card-atur" onclick="switchTab('atur')" class="text-left bg-slate-100 hover:bg-slate-200/70 border border-slate-200 rounded-2xl p-3.5 transition active:scale-[0.98]">
               <div class="w-9 h-9 rounded-xl bg-slate-700 text-white font-extrabold text-sm flex items-center justify-center mb-2 shadow-sm">⚙️</div>
               <p class="text-sm font-bold text-slate-800">Pengaturan</p>
-              <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">Akun, Cloud & Backup</p>
+              <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">Akun, Izin & Cloud</p>
             </button>
           </div>
+        </div>
+
+        <!-- Galeri Dokumentasi Kegiatan di Dashboard (Guru bisa unggah kapan saja) -->
+        <div id="dashboard-doc-section" class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Dokumentasi Kegiatan</h3>
+              <p class="text-[10px] text-slate-400">Foto kegiatan belajar & mengaji terbaru</p>
+            </div>
+            <button type="button" id="btn-add-doc-photo" onclick="openPhotoDocModal()"
+              class="hidden px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold rounded-xl shadow-sm shrink-0">
+              + Dokumentasi Foto
+            </button>
+          </div>
+          <div id="dashboard-photo-gallery" class="grid grid-cols-2 gap-2.5"></div>
         </div>
 
         <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
@@ -297,13 +431,25 @@
       <section id="view-atur" class="hidden space-y-4">
         <div>
           <h2 class="text-base font-extrabold text-slate-800">Pengaturan & Akun</h2>
-          <p class="text-xs text-slate-500">Ubah kredensial, kelola pengguna & sinkronisasi</p>
+          <p class="text-xs text-slate-500">Izin pendaftaran, hak akses user & kredensial</p>
+        </div>
+
+        <!-- Panel Persetujuan Pendaftar Baru (EKSKLUSIF SUPER ADMIN) -->
+        <div id="pending-approval-panel" class="hidden bg-white p-4 rounded-2xl border border-amber-300 shadow-sm space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h3 class="text-xs font-extrabold text-amber-950 uppercase tracking-wider">Izin Pendaftaran User Baru</h3>
+              <p class="text-[11px] text-slate-500">Atur checklist hak akses modul sebelum menyetujui</p>
+            </div>
+            <span id="atur-pending-count" class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-extrabold">0</span>
+          </div>
+          <div id="pending-account-list" class="space-y-2.5"></div>
         </div>
 
         <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-700">Status Hak Akses</span>
-            <span id="settings-role-pill" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">GURU</span>
+            <span class="text-xs font-bold text-slate-700">Status & Nomor Induk</span>
+            <span id="settings-role-pill" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">USER</span>
           </div>
           <p id="settings-account-desc" class="text-xs text-slate-500 leading-relaxed"></p>
         </div>
@@ -312,7 +458,7 @@
         <div class="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm space-y-3">
           <div>
             <h3 class="text-xs font-extrabold text-blue-900 uppercase tracking-wider">Ubah Username & PIN Saya</h3>
-            <p class="text-[11px] text-slate-500">Perubahan dapat dipantau oleh Super Admin untuk pemulihan akses</p>
+            <p class="text-[11px] text-slate-500">Perubahan otomatis tersimpan ke database cloud</p>
           </div>
           <div class="space-y-2.5">
             <div>
@@ -338,46 +484,40 @@
           </div>
         </div>
 
-        <!-- Panel Super Admin -->
+        <!-- Panel Kontrol Semua Akun User (EKSKLUSIF SUPER ADMIN) -->
         <div id="superadmin-account-panel" class="hidden bg-white p-4 rounded-2xl border border-indigo-200 shadow-sm space-y-3">
           <div class="flex items-center justify-between gap-2">
             <div>
-              <h3 class="text-xs font-extrabold text-indigo-900 uppercase tracking-wider">Kontrol Semua Akun (Super Admin)</h3>
-              <p class="text-[11px] text-slate-500">Lihat & ubah username/PIN Admin, Guru & Wali Murid</p>
+              <h3 class="text-xs font-extrabold text-indigo-900 uppercase tracking-wider">Kontrol Semua User & Hak Akses</h3>
+              <p class="text-[11px] text-slate-500">Lihat No Induk, ubah PIN & atur checklist izin tiap user</p>
             </div>
             <button type="button" onclick="openAccountModal()" class="px-2.5 py-1.5 bg-indigo-600 text-white text-[11px] font-bold rounded-lg shrink-0">
-              + Akun
+              + User
             </button>
           </div>
           <div id="account-list-container" class="space-y-2"></div>
         </div>
 
-        <!-- Sinkronisasi Firebase -->
-        <div id="firebase-config-panel" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+        <!-- Status Cloud Firebase (Tertanam Permanen & Otomatis) -->
+        <div class="bg-white p-4 rounded-2xl border border-emerald-100 shadow-sm space-y-1.5">
           <div class="flex items-center justify-between">
-            <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Firebase Realtime Database</h3>
-            <span id="sync-status-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Mode Lokal</span>
+            <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Database Cloud Firebase</h3>
+            <span id="sync-status-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Auto-Sync Aktif</span>
           </div>
-          <input type="url" id="firebase-url-input" placeholder="https://nama-project-default-rtdb.firebaseio.com"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
-          <div class="flex gap-2">
-            <button type="button" onclick="saveFirebaseConfig()" class="flex-1 py-2 bg-slate-800 text-white text-xs font-bold rounded-xl">
-              Simpan & Sinkronkan
-            </button>
-            <button type="button" onclick="pullFromFirebase(true)" class="px-3 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl">
-              Tarik Data
-            </button>
-          </div>
+          <p class="text-[11px] text-slate-500">Terhubung otomatis ke <span class="font-semibold text-slate-700">taman-belajar-db</span> tanpa pengaturan manual.</p>
         </div>
 
-        <!-- Backup JSON -->
-        <div id="backup-panel" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
-          <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Cadangan Data (Backup JSON)</h3>
+        <!-- Backup JSON (EKSKLUSIF SUPER ADMIN) -->
+        <div id="backup-panel" class="hidden bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+          <div>
+            <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Cadangan Data (Khusus Admin)</h3>
+            <p class="text-[11px] text-slate-500">Ekspor atau pulihkan seluruh database aplikasi</p>
+          </div>
           <div class="grid grid-cols-2 gap-2">
             <button type="button" onclick="exportBackupJSON()" class="py-2.5 px-3 bg-slate-800 text-white text-xs font-bold rounded-xl">
               Ekspor JSON
             </button>
-            <label id="btn-import-json-label" class="py-2.5 px-3 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl text-center cursor-pointer">
+            <label class="py-2.5 px-3 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl text-center cursor-pointer">
               Impor JSON
               <input type="file" accept=".json" onchange="importBackupJSON(event)" class="hidden" />
             </label>
@@ -388,7 +528,7 @@
     </main>
 
     <!-- ==================== 4. FIXED BOTTOM NAVIGATION ==================== -->
-    <nav class="shrink-0 bg-white border-t border-slate-200 px-2 py-1.5 grid grid-cols-5 gap-1 z-20">
+    <nav id="bottom-nav" class="shrink-0 bg-white border-t border-slate-200 px-2 py-1.5 grid grid-cols-5 gap-1 z-20">
       <button type="button" onclick="switchTab('beranda')" data-nav="beranda" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-blue-600 bg-blue-50/80 font-bold">
         <span class="text-xs">🏠</span>
         <span class="text-[10px]">Beranda</span>
@@ -423,7 +563,7 @@
       <input type="hidden" id="murid-edit-id" />
       <div class="grid grid-cols-2 gap-2.5">
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1">Nomor Murid (ID) *</label>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">Nomor Murid (Otomatis) *</label>
           <input type="text" id="murid-code" placeholder="SOL2611001" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold uppercase" />
         </div>
         <div>
@@ -540,28 +680,73 @@
     </div>
   </div>
 
-  <div id="modal-account" class="hidden fixed inset-0 z-50 bg-slate-900/50 flex items-end sm:items-center justify-center p-4">
-    <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 shadow-2xl">
+  <!-- MODAL PERSETUJUAN PENDAFTARAN USER BARU + CHECKLIST HAK AKSES (EKSKLUSIF ADMIN) -->
+  <div id="modal-approve-pending" class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-end sm:items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between">
-        <h3 id="modal-account-title" class="text-base font-extrabold text-slate-800">Tambah Akun Pengguna</h3>
+        <div>
+          <h3 class="text-base font-extrabold text-slate-800">Izin Pendaftaran & Hak Akses</h3>
+          <p class="text-[11px] text-slate-500">Centang fitur yang boleh diakses oleh User ini</p>
+        </div>
+        <button type="button" onclick="closeModal('modal-approve-pending')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-xs font-bold text-slate-600">Tutup</button>
+      </div>
+
+      <input type="hidden" id="approve-pending-id" />
+
+      <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-1 text-xs">
+        <div class="flex items-center justify-between">
+          <span class="font-extrabold text-slate-800" id="approve-user-name">-</span>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 uppercase" id="approve-user-role">-</span>
+        </div>
+        <p class="text-[11px] text-slate-600">Username: <b id="approve-user-username">-</b> • PIN: <b id="approve-user-pin">-</b></p>
+        <p class="text-[11px] text-emerald-700 font-bold" id="approve-auto-code-info">Nomor Induk Otomatis: -</p>
+      </div>
+
+      <div class="space-y-2">
+        <p class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Checklist Hak Akses User:</p>
+        <div id="approve-permissions-checklist" class="grid grid-cols-1 gap-1.5 bg-indigo-50/50 p-3 rounded-2xl border border-indigo-100 text-xs"></div>
+      </div>
+
+      <div class="flex gap-2 pt-1">
+        <button type="button" onclick="confirmApprovePending()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md">
+          ✓ Setujui & Aktifkan User
+        </button>
+        <button type="button" onclick="rejectPendingFromModal()" class="px-3.5 py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold rounded-xl">
+          Tolak
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL KELOLA / EDIT AKUN USER + CHECKLIST HAK AKSES (EKSKLUSIF ADMIN) -->
+  <div id="modal-account" class="hidden fixed inset-0 z-50 bg-slate-900/50 flex items-end sm:items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <h3 id="modal-account-title" class="text-base font-extrabold text-slate-800">Tambah Akun User</h3>
         <button type="button" onclick="closeModal('modal-account')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-xs font-bold text-slate-600">Tutup</button>
       </div>
       <input type="hidden" id="acc-edit-id" />
-      <div>
-        <label class="block text-[11px] font-bold text-slate-600 mb-1">Peran (Role) *</label>
-        <select id="acc-role" onchange="toggleAccMuridField()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold">
-          <option value="guru">Guru (Tulis Saja - Tanpa Hapus/Ubah)</option>
-          <option value="superadmin">Super Admin (Kontrol Penuh Sistem)</option>
-          <option value="wali">Wali Murid (Pantau Anak Sendiri)</option>
-        </select>
+      <div class="grid grid-cols-2 gap-2.5">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">Kategori User *</label>
+          <select id="acc-role" onchange="onAccRoleChange()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold">
+            <option value="guru">Guru Pengajar (User)</option>
+            <option value="wali">Orang Tua / Wali Murid (User)</option>
+            <option value="superadmin">Super Admin</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">Nomor Induk Otomatis</label>
+          <input type="text" id="acc-induk-code" readonly class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs font-extrabold text-indigo-700" />
+        </div>
       </div>
       <div id="acc-murid-wrapper" class="hidden">
-        <label class="block text-[11px] font-bold text-slate-600 mb-1">Tautkan ke Nomor Murid *</label>
-        <select id="acc-murid-code" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold"></select>
+        <label class="block text-[11px] font-bold text-slate-600 mb-1">Tautkan ke Nomor Induk Murid *</label>
+        <select id="acc-murid-code" onchange="document.getElementById('acc-induk-code').value = this.value" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold"></select>
       </div>
       <div>
         <label class="block text-[11px] font-bold text-slate-600 mb-1">Nama Tampilan *</label>
-        <input type="text" id="acc-name" placeholder="Nama lengkap pengguna..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+        <input type="text" id="acc-name" placeholder="Nama lengkap user..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
       </div>
       <div class="grid grid-cols-2 gap-2.5">
         <div>
@@ -573,25 +758,118 @@
           <input type="text" id="acc-pin" value="1234" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold" />
         </div>
       </div>
+
+      <div id="acc-permissions-section" class="space-y-1.5">
+        <p class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Checklist Hak Akses Modul User:</p>
+        <div id="acc-permissions-checklist" class="grid grid-cols-1 gap-1.5 bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs"></div>
+      </div>
+
       <button type="button" onclick="saveAccountForm()" class="w-full py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-md">
-        Simpan Akun Pengguna
+        Simpan Akun User
       </button>
     </div>
   </div>
 
+  <!-- MODAL UPLOAD DOKUMENTASI FOTO (GURU & ADMIN KAPAN SAJA) -->
+  <div id="modal-photo-doc" class="hidden fixed inset-0 z-50 bg-slate-900/50 flex items-end sm:items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-extrabold text-slate-800">Dokumentasi Foto Kegiatan</h3>
+        <button type="button" onclick="closeModal('modal-photo-doc')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-xs font-bold text-slate-600">Tutup</button>
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 mb-1">Ambil / Pilih Foto Kegiatan *</label>
+        <input type="file" id="doc-photo-file" accept="image/*" onchange="previewDocPhoto(event)"
+          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+        <img id="doc-photo-preview" alt="Pratinjau Foto" class="hidden mt-2 w-full h-40 object-cover rounded-2xl border border-slate-200" />
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 mb-1">Keterangan Singkat *</label>
+        <input type="text" id="doc-photo-caption" placeholder="Contoh: Setoran hafalan Juz 30 & latihan berhitung"
+          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+      </div>
+      <div class="flex items-center justify-between text-[11px] text-slate-500 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100">
+        <span>Tanggal & Waktu Otomatis:</span>
+        <span id="doc-photo-auto-date" class="font-bold text-slate-700">-</span>
+      </div>
+      <button type="button" id="btn-save-photo-doc" onclick="savePhotoDoc()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md">
+        Simpan & Tampilkan di Dashboard
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL LIHAT FOTO PENUH -->
+  <div id="modal-photo-viewer" onclick="closeModal('modal-photo-viewer')" class="hidden fixed inset-0 z-50 bg-slate-950/85 flex items-center justify-center p-4">
+    <div onclick="event.stopPropagation()" class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl">
+      <img id="viewer-photo-img" alt="Dokumentasi" class="w-full max-h-[65vh] object-contain bg-slate-900" />
+      <div class="p-4 space-y-1.5">
+        <div class="flex items-center justify-between gap-2">
+          <span id="viewer-photo-date" class="text-[11px] font-bold text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-full"></span>
+          <span id="viewer-photo-author" class="text-[11px] text-slate-400"></span>
+        </div>
+        <p id="viewer-photo-caption" class="text-xs font-bold text-slate-800 leading-relaxed"></p>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" id="btn-delete-photo-doc" class="hidden px-3 py-1.5 rounded-xl bg-rose-100 text-rose-700 text-xs font-bold">Hapus Foto</button>
+          <button type="button" onclick="closeModal('modal-photo-viewer')" class="px-4 py-1.5 rounded-xl bg-slate-800 text-white text-xs font-bold">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // ==================== KONFIGURASI & PENYIMPANAN AMAN ====================
-    const STORAGE_KEY = 'taman_belajar_v5_clean';
-    const LEGACY_KEYS = ['taman_belajar_v4_db', 'taman_belajar_v3_db'];
-    const SESSION_KEY = 'taman_belajar_v5_session';
-    const FIREBASE_URL_KEY = 'taman_belajar_firebase_url';
+    // ==================== KONFIGURASI DATABASE & HAK AKSES ====================
+    const STORAGE_KEY = 'taman_belajar_v7_db';
+    const LEGACY_KEYS = ['taman_belajar_v6_signup', 'taman_belajar_v5_clean', 'taman_belajar_v4_db', 'taman_belajar_v3_db'];
+    const SESSION_KEY = 'taman_belajar_v7_session';
+    const FIREBASE_DB_URL = 'https://taman-belajar-db-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+    const PERMISSION_ITEMS = [
+      { key: 'beranda', label: 'Beranda & Galeri Dokumentasi' },
+      { key: 'murid', label: 'Data Murid' },
+      { key: 'hadir', label: 'Kehadiran (Absensi)' },
+      { key: 'mengaji', label: 'Mengaji' },
+      { key: 'les', label: 'Les & Bimbel' },
+      { key: 'laporan', label: 'Laporan PDF & WhatsApp' },
+      { key: 'canWrite', label: 'Izin Input / Catat Data Baru' },
+      { key: 'canUploadPhoto', label: 'Izin Upload Dokumentasi Foto' }
+    ];
+
+    function getDefaultPermissions(role) {
+      if (role === 'superadmin') {
+        return { beranda: true, murid: true, hadir: true, mengaji: true, les: true, laporan: true, canWrite: true, canUploadPhoto: true };
+      }
+      if (role === 'guru') {
+        return { beranda: true, murid: true, hadir: true, mengaji: true, les: true, laporan: true, canWrite: true, canUploadPhoto: true };
+      }
+      // Default untuk Orang Tua / Wali Murid
+      return { beranda: true, murid: true, hadir: true, mengaji: true, les: true, laporan: true, canWrite: false, canUploadPhoto: false };
+    }
 
     const DEFAULT_DATA = {
       accounts: [
-        { id: 'acc-1', username: 'superadmin', pin: '1234', name: 'Super Admin', role: 'superadmin', muridCode: null },
-        { id: 'acc-2', username: 'khasanah', pin: '1234', name: 'Khasanah', role: 'guru', muridCode: null },
-        { id: 'acc-3', username: 'wali_aisyah', pin: '1234', name: 'Wali Ananda Aisyah', role: 'wali', muridCode: 'SOL2611001' }
+        {
+          id: 'acc-1',
+          username: 'superadmin',
+          pin: '1234',
+          name: 'Super Admin',
+          role: 'superadmin',
+          indukCode: 'ADM2611001',
+          muridCode: null,
+          permissions: getDefaultPermissions('superadmin')
+        },
+        {
+          id: 'acc-3',
+          username: 'wali_aisyah',
+          pin: '1234',
+          name: 'Wali Ananda Aisyah',
+          role: 'wali',
+          indukCode: 'SOL2611001',
+          muridCode: 'SOL2611001',
+          permissions: getDefaultPermissions('wali')
+        }
       ],
+      pendingAccounts: [],
+      photos: [],
       murid: [
         { id: 'm-1', code: 'SOL2611001', pin: '1234', name: 'Aisyah Putri Rahma', program: 'Keduanya', kelas: 'SD Kelas 2', wali: 'Bapak Ahmad', regMonth: '2026-11' },
         { id: 'm-2', code: 'SOL2611002', pin: '1234', name: 'Muhammad Rizky Pratama', program: 'Mengaji', kelas: 'SD Kelas 1', wali: 'Ibu Siti', regMonth: '2026-11' },
@@ -601,12 +879,12 @@
         '2026-11-22': { mengaji: ['m-1', 'm-2', 'm-3'], les: ['m-1', 'm-3'] }
       },
       mengaji: [
-        { id: 'mg-1', date: '2026-11-22', muridId: 'm-1', jilid: 'Iqro 4', halaman: 'Hal. 12 - 14', nilai: 'Sangat Lancar (A)', skor: 92, catatan: 'Panjang pendek mad sudah tepat.', author: 'Khasanah' },
-        { id: 'mg-2', date: '2026-11-22', muridId: 'm-2', jilid: 'Iqro 2', halaman: 'Hal. 8 - 9', nilai: 'Lancar (B)', skor: 85, catatan: 'Perhatikan huruf sambung.', author: 'Khasanah' }
+        { id: 'mg-1', date: '2026-11-22', muridId: 'm-1', jilid: 'Iqro 4', halaman: 'Hal. 12 - 14', nilai: 'Sangat Lancar (A)', skor: 92, catatan: 'Panjang pendek mad sudah tepat.', author: 'Pengajar' },
+        { id: 'mg-2', date: '2026-11-22', muridId: 'm-2', jilid: 'Iqro 2', halaman: 'Hal. 8 - 9', nilai: 'Lancar (B)', skor: 85, catatan: 'Perhatikan huruf sambung.', author: 'Pengajar' }
       ],
       les: [
-        { id: 'ls-1', date: '2026-11-22', muridId: 'm-1', mapel: 'Matematika', materi: 'Penjumlahan & Pengurangan Bersusun', nilai: 95, catatan: 'Sangat teliti mengerjakan latihan.', author: 'Khasanah' },
-        { id: 'ls-2', date: '2026-11-22', muridId: 'm-3', mapel: 'Bahasa Indonesia', materi: 'Membaca Pemahaman & Kalimat Utama', nilai: 88, catatan: 'Membaca lancar dan percaya diri.', author: 'Khasanah' }
+        { id: 'ls-1', date: '2026-11-22', muridId: 'm-1', mapel: 'Matematika', materi: 'Penjumlahan & Pengurangan Bersusun', nilai: 95, catatan: 'Sangat teliti mengerjakan latihan.', author: 'Pengajar' },
+        { id: 'ls-2', date: '2026-11-22', muridId: 'm-3', mapel: 'Bahasa Indonesia', materi: 'Membaca Pemahaman & Kalimat Utama', nilai: 88, catatan: 'Membaca lancar dan percaya diri.', author: 'Pengajar' }
       ]
     };
 
@@ -631,19 +909,36 @@
       try { if (window.sessionStorage) window.sessionStorage.removeItem(key); } catch (e) {}
     }
 
+    function normalizeAccount(acc) {
+      const defaults = getDefaultPermissions(acc.role);
+      return {
+        ...acc,
+        indukCode: acc.indukCode || acc.muridCode || (acc.role === 'superadmin' ? 'ADM2611001' : ''),
+        permissions: { ...defaults, ...(acc.permissions || {}) }
+      };
+    }
+
     function normalizeDB(parsed) {
-      const merged = {
-        accounts: Array.isArray(parsed.accounts) && parsed.accounts.length ? parsed.accounts : JSON.parse(JSON.stringify(DEFAULT_DATA.accounts)),
+      let accList = Array.isArray(parsed.accounts) && parsed.accounts.length
+        ? parsed.accounts.map(normalizeAccount)
+        : JSON.parse(JSON.stringify(DEFAULT_DATA.accounts));
+
+      // Pastikan akun bawaan 'khasanah' dihapus jika terbawa dari migrasi lama
+      accList = accList.filter(a => (a.username || '').toLowerCase() !== 'khasanah');
+
+      if (!accList.some(a => a.role === 'superadmin')) {
+        accList.unshift(DEFAULT_DATA.accounts[0]);
+      }
+
+      return {
+        accounts: accList,
+        pendingAccounts: Array.isArray(parsed.pendingAccounts) ? parsed.pendingAccounts : [],
+        photos: Array.isArray(parsed.photos) ? parsed.photos : [],
         murid: Array.isArray(parsed.murid) ? parsed.murid : JSON.parse(JSON.stringify(DEFAULT_DATA.murid)),
         attendance: parsed.attendance && typeof parsed.attendance === 'object' ? parsed.attendance : {},
         mengaji: Array.isArray(parsed.mengaji) ? parsed.mengaji : [],
         les: Array.isArray(parsed.les) ? parsed.les : []
       };
-      // Pastikan akun Super Admin selalu ada
-      if (!merged.accounts.some(a => a.role === 'superadmin')) {
-        merged.accounts.unshift(DEFAULT_DATA.accounts[0]);
-      }
-      return merged;
     }
 
     function loadDB() {
@@ -669,10 +964,10 @@
     let currentUser = null;
     try {
       const sRaw = safeGetSession(SESSION_KEY);
-      if (sRaw) currentUser = JSON.parse(sRaw);
+      if (sRaw) currentUser = normalizeAccount(JSON.parse(sRaw));
     } catch (e) { currentUser = null; }
 
-    let activeDate = '2026-11-22';
+    let activeDate = new Date().toISOString().slice(0, 10);
     let hadirSession = 'mengaji';
 
     function saveDB(pushCloud = true) {
@@ -681,10 +976,51 @@
       if (pushCloud) pushToFirebase(false);
     }
 
-    // ==================== HAK AKSES (RBAC) ====================
-    function canWrite() { return currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'guru'); }
-    function canEditOrDelete() { return currentUser && currentUser.role === 'superadmin'; }
+    // ==================== PENOMORAN OTOMATIS DARI DATABASE ====================
+    function generateNextMuridCode(dateStr) {
+      const refDate = dateStr || activeDate || new Date().toISOString().slice(0, 10);
+      const yy = refDate.slice(2, 4);
+      const mm = refDate.slice(5, 7);
+      const prefix = `SOL${yy}${mm}`;
+      let maxSeq = 0;
+      db.murid.forEach(m => {
+        const c = (m.code || '').toUpperCase();
+        if (c.startsWith(prefix)) {
+          const seq = parseInt(c.slice(prefix.length), 10);
+          if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
+        }
+      });
+      return `${prefix}${String(maxSeq + 1).padStart(3, '0')}`;
+    }
+
+    function generateNextGuruCode(dateStr) {
+      const refDate = dateStr || activeDate || new Date().toISOString().slice(0, 10);
+      const yy = refDate.slice(2, 4);
+      const mm = refDate.slice(5, 7);
+      const prefix = `GRU${yy}${mm}`;
+      let maxSeq = 0;
+      db.accounts.forEach(a => {
+        const c = (a.indukCode || '').toUpperCase();
+        if (c.startsWith(prefix)) {
+          const seq = parseInt(c.slice(prefix.length), 10);
+          if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
+        }
+      });
+      return `${prefix}${String(maxSeq + 1).padStart(3, '0')}`;
+    }
+
+    // ==================== HAK AKSES GRANULAR (RBAC + CHECKLIST ADMIN) ====================
+    function isAdmin() { return currentUser && currentUser.role === 'superadmin'; }
     function isWali() { return currentUser && currentUser.role === 'wali'; }
+    function hasPerm(permKey) {
+      if (!currentUser) return false;
+      if (isAdmin()) return true;
+      const perms = currentUser.permissions || getDefaultPermissions(currentUser.role);
+      return Boolean(perms[permKey]);
+    }
+    function canWrite() { return isAdmin() || hasPerm('canWrite'); }
+    function canEditOrDelete() { return isAdmin(); }
+    function canUploadPhoto() { return isAdmin() || hasPerm('canUploadPhoto'); }
 
     function getAccessibleMurid() {
       if (!currentUser) return [];
@@ -703,6 +1039,94 @@
       if (el) el.type = el.type === 'password' ? 'text' : 'password';
     }
 
+    // ==================== SWITCHER LOGIN & SIGN UP ====================
+    function switchAuthMode(mode) {
+      const isLogin = mode === 'login';
+      const tabLogin = document.getElementById('auth-tab-login');
+      const tabSignup = document.getElementById('auth-tab-signup');
+      const loginPanel = document.getElementById('login-panel');
+      const signupPanel = document.getElementById('signup-panel');
+
+      if (tabLogin) {
+        tabLogin.className = isLogin
+          ? 'py-2.5 text-xs font-extrabold rounded-xl bg-blue-600 text-white shadow-sm transition cursor-pointer select-none'
+          : 'py-2.5 text-xs font-extrabold rounded-xl text-slate-600 hover:text-slate-800 transition cursor-pointer select-none';
+      }
+      if (tabSignup) {
+        tabSignup.className = !isLogin
+          ? 'py-2.5 text-xs font-extrabold rounded-xl bg-indigo-600 text-white shadow-sm transition cursor-pointer select-none'
+          : 'py-2.5 text-xs font-extrabold rounded-xl text-slate-600 hover:text-slate-800 transition cursor-pointer select-none';
+      }
+      if (loginPanel) loginPanel.classList.toggle('hidden', !isLogin);
+      if (signupPanel) signupPanel.classList.toggle('hidden', isLogin);
+
+      const errEl = document.getElementById('login-error');
+      const fbEl = document.getElementById('signup-feedback');
+      if (errEl) errEl.classList.add('hidden');
+      if (fbEl) fbEl.classList.add('hidden');
+    }
+
+    function toggleSignupWaliFields() {
+      const role = document.getElementById('signup-role').value;
+      document.getElementById('signup-wali-fields').classList.toggle('hidden', role !== 'wali');
+      document.getElementById('signup-guru-note').classList.toggle('hidden', role !== 'guru');
+    }
+
+    function handleSignUp() {
+      const name = (document.getElementById('signup-name').value || '').trim();
+      const username = (document.getElementById('signup-username').value || '').trim();
+      const pin = (document.getElementById('signup-pin').value || '').trim();
+      const role = document.getElementById('signup-role').value;
+      const muridName = (document.getElementById('signup-murid-name').value || '').trim();
+      const muridKelas = (document.getElementById('signup-murid-kelas').value || '').trim();
+      const muridProgram = document.getElementById('signup-murid-program').value;
+      const fbEl = document.getElementById('signup-feedback');
+
+      const showFeedback = (msg, isError = true) => {
+        fbEl.textContent = msg;
+        fbEl.className = isError
+          ? 'text-xs font-semibold px-3 py-2 rounded-xl border text-rose-600 bg-rose-50 border-rose-200'
+          : 'text-xs font-semibold px-3 py-2 rounded-xl border text-emerald-700 bg-emerald-50 border-emerald-200';
+        fbEl.classList.remove('hidden');
+      };
+
+      if (!name || !username || !pin) {
+        return showFeedback('Nama Lengkap, Username, dan PIN wajib diisi.');
+      }
+      if (pin.length < 4) {
+        return showFeedback('PIN minimal 4 angka.');
+      }
+      if (role === 'wali' && !muridName) {
+        return showFeedback('Nama Lengkap Anak / Murid wajib diisi untuk Orang Tua / Wali Murid.');
+      }
+
+      const existsActive = db.accounts.some(a => (a.username || '').toLowerCase() === username.toLowerCase());
+      const existsPending = db.pendingAccounts.some(p => (p.username || '').toLowerCase() === username.toLowerCase());
+      if (existsActive || existsPending) {
+        return showFeedback('Username sudah digunakan atau sedang menunggu persetujuan Admin.');
+      }
+
+      db.pendingAccounts.push({
+        id: 'pend-' + Date.now(),
+        name,
+        username,
+        pin,
+        role,
+        muridName: role === 'wali' ? muridName : '',
+        muridKelas: role === 'wali' ? muridKelas : '',
+        muridProgram: role === 'wali' ? muridProgram : '',
+        createdAt: new Date().toISOString().slice(0, 10)
+      });
+
+      saveDB();
+      document.getElementById('signup-name').value = '';
+      document.getElementById('signup-username').value = '';
+      document.getElementById('signup-pin').value = '';
+      document.getElementById('signup-murid-name').value = '';
+      document.getElementById('signup-murid-kelas').value = '';
+      showFeedback('Pendaftaran berhasil dikirim! Menunggu persetujuan & pengaturan hak akses oleh Admin.', false);
+    }
+
     // ==================== LOGIN & LOGOUT ====================
     function handleLogin() {
       const unameInput = document.getElementById('login-username');
@@ -717,8 +1141,19 @@
         return;
       }
 
+      const pendingMatch = db.pendingAccounts.find(p =>
+        (p.username || '').toLowerCase() === uname.toLowerCase() && String(p.pin) === pin
+      );
+      if (pendingMatch) {
+        errEl.textContent = 'Akun Anda masih menunggu persetujuan Admin. Silakan coba beberapa saat lagi.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
       let matchedAcc = db.accounts.find(a =>
-        (a.username || '').toLowerCase() === uname.toLowerCase() && String(a.pin) === pin
+        ((a.username || '').toLowerCase() === uname.toLowerCase() ||
+         (a.indukCode || '').toUpperCase() === uname.toUpperCase()) &&
+        String(a.pin) === pin
       );
 
       if (!matchedAcc) {
@@ -726,16 +1161,17 @@
           (m.code || '').toUpperCase() === uname.toUpperCase() && String(m.pin) === pin
         );
         if (matchedMurid) {
-          matchedAcc = {
+          matchedAcc = normalizeAccount({
             id: 'wali-direct-' + matchedMurid.id,
             username: matchedMurid.code,
             pin: matchedMurid.pin,
             name: matchedMurid.wali ? `${matchedMurid.wali} (${matchedMurid.name})` : `Wali ${matchedMurid.name}`,
             role: 'wali',
+            indukCode: matchedMurid.code,
             muridCode: matchedMurid.code,
             isDirectMuridLogin: true,
             muridId: matchedMurid.id
-          };
+          });
         }
       }
 
@@ -746,7 +1182,7 @@
       }
 
       errEl.classList.add('hidden');
-      currentUser = matchedAcc;
+      currentUser = normalizeAccount(matchedAcc);
       safeSetSession(SESSION_KEY, JSON.stringify(currentUser));
       initAppAfterLogin();
     }
@@ -757,15 +1193,24 @@
       document.getElementById('login-username').value = '';
       document.getElementById('login-pin').value = '';
       document.getElementById('login-error').classList.add('hidden');
-      document.getElementById('login-screen').classList.remove('hidden');
+      switchAuthMode('login');
+      document.getElementById('auth-screen').classList.remove('hidden');
     }
 
     function initAppAfterLogin() {
       if (!currentUser) {
-        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('auth-screen').classList.remove('hidden');
         return;
       }
-      document.getElementById('login-screen').classList.add('hidden');
+
+      // Sinkronkan perubahan akun terbaru dari db jika ada
+      const freshAcc = db.accounts.find(a => a.id === currentUser.id);
+      if (freshAcc) {
+        currentUser = normalizeAccount(freshAcc);
+        safeSetSession(SESSION_KEY, JSON.stringify(currentUser));
+      }
+
+      document.getElementById('auth-screen').classList.add('hidden');
       document.getElementById('user-display-name').textContent = currentUser.name;
       document.getElementById('date-picker').value = activeDate;
       document.getElementById('report-month-input').value = activeDate.slice(0, 7);
@@ -775,41 +1220,56 @@
       const settingsPill = document.getElementById('settings-role-pill');
       const settingsDesc = document.getElementById('settings-account-desc');
 
-      if (currentUser.role === 'superadmin') {
-        badge.textContent = 'SUPER ADMIN';
+      if (isAdmin()) {
+        badge.textContent = 'ADMIN';
         badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-slate-900 shadow-sm';
         banner.classList.add('hidden');
-        settingsPill.textContent = 'SUPER ADMIN';
+        settingsPill.textContent = `SUPER ADMIN (${currentUser.indukCode || 'ADM2611001'})`;
         settingsPill.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800';
-        settingsDesc.textContent = 'Kontrol penuh sistem: tambah, edit, hapus data, lihat & kelola seluruh akun pengguna.';
+        settingsDesc.textContent = 'Kontrol penuh sistem: beri izin pendaftaran user, atur checklist hak akses modul, edit/hapus data & backup database.';
       } else if (currentUser.role === 'guru') {
-        badge.textContent = 'GURU';
+        badge.textContent = 'USER • GURU';
         badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-400 text-slate-950 shadow-sm';
         banner.className = 'rounded-2xl p-3 text-xs border bg-emerald-50 border-emerald-200 text-emerald-800';
-        banner.innerHTML = '<b>Mode Guru (Tulis Saja):</b> Dapat mencatat kehadiran, mengaji, nilai les, dan menambah murid baru tanpa menghapus/mengubah data lama.';
+        banner.innerHTML = `<b>User Guru (${currentUser.indukCode || '-'}):</b> Hak akses modul dan input kegiatan mengikuti izin yang diatur oleh Admin.`;
         banner.classList.remove('hidden');
-        settingsPill.textContent = 'GURU (TULIS SAJA)';
+        settingsPill.textContent = `USER GURU • ID: ${currentUser.indukCode || '-'}`;
         settingsPill.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800';
-        settingsDesc.textContent = 'Akses pengajar aktif: mencatat perkembangan belajar baru tanpa izin mengubah atau menghapus riwayat tersimpan.';
+        settingsDesc.textContent = `Nomor Induk Guru: ${currentUser.indukCode || '-'}. Akses modul disesuaikan dengan checklist izin dari Admin.`;
       } else {
         const anak = getAccessibleMurid()[0];
-        badge.textContent = 'WALI MURID';
+        badge.textContent = 'USER • ORTU';
         badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-300 text-slate-950 shadow-sm';
         banner.className = 'rounded-2xl p-3 text-xs border bg-sky-50 border-sky-200 text-sky-900';
-        banner.innerHTML = `<b>Portal Wali Murid (${anak ? anak.code + ' - ' + anak.name : currentUser.muridCode}):</b> Menampilkan riwayat kehadiran, nilai les, dan mengaji khusus putra/putri Anda.`;
+        banner.innerHTML = `<b>User Orang Tua (${anak ? anak.code + ' - ' + anak.name : currentUser.muridCode}):</b> Pantau perkembangan belajar, mengaji & dokumentasi kegiatan anak.`;
         banner.classList.remove('hidden');
-        settingsPill.textContent = 'WALI MURID (' + (currentUser.muridCode || '-') + ')';
+        settingsPill.textContent = `USER ORTU • ID: ${currentUser.muridCode || '-'}`;
         settingsPill.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800';
-        settingsDesc.textContent = 'Mode pantau khusus wali murid untuk Nomor ID ' + (currentUser.muridCode || '-') + '.';
+        settingsDesc.textContent = `Nomor Induk Anak: ${currentUser.muridCode || '-'}. Akses modul disesuaikan dengan checklist izin dari Admin.`;
       }
 
+      // Terapkan visibilitas tombol & kartu menu berdasarkan checklist hak akses Admin
       document.getElementById('btn-add-murid').classList.toggle('hidden', !canWrite());
       document.getElementById('btn-hadir-semua').classList.toggle('hidden', !canWrite());
       document.getElementById('btn-add-mengaji').classList.toggle('hidden', !canWrite());
       document.getElementById('btn-add-les').classList.toggle('hidden', !canWrite());
-      document.getElementById('superadmin-account-panel').classList.toggle('hidden', currentUser.role !== 'superadmin');
-      document.getElementById('backup-panel').classList.toggle('hidden', isWali());
-      document.getElementById('btn-import-json-label').classList.toggle('hidden', currentUser.role !== 'superadmin');
+      document.getElementById('btn-add-doc-photo').classList.toggle('hidden', !canUploadPhoto());
+
+      document.getElementById('menu-card-murid').classList.toggle('hidden', !hasPerm('murid'));
+      document.getElementById('menu-card-hadir').classList.toggle('hidden', !hasPerm('hadir'));
+      document.getElementById('menu-card-mengaji').classList.toggle('hidden', !hasPerm('mengaji'));
+      document.getElementById('menu-card-les').classList.toggle('hidden', !hasPerm('les'));
+      document.getElementById('menu-card-laporan').classList.toggle('hidden', !hasPerm('laporan'));
+      document.getElementById('dashboard-doc-section').classList.toggle('hidden', !hasPerm('beranda') && !canUploadPhoto());
+
+      // Bottom Nav visibility sesuai izin
+      document.querySelector('[data-nav="murid"]').classList.toggle('hidden', !hasPerm('murid'));
+      document.querySelector('[data-nav="hadir"]').classList.toggle('hidden', !hasPerm('hadir'));
+      document.querySelector('[data-nav="laporan"]').classList.toggle('hidden', !hasPerm('laporan'));
+
+      // Panel khusus Super Admin
+      document.getElementById('superadmin-account-panel').classList.toggle('hidden', !isAdmin());
+      document.getElementById('backup-panel').classList.toggle('hidden', !isAdmin());
 
       if (isWali()) {
         document.getElementById('stat-murid-label').textContent = 'Nomor ID';
@@ -825,15 +1285,171 @@
       document.getElementById('self-acc-username').value = currentUser.username || '';
       document.getElementById('self-acc-pin').value = currentUser.pin || '';
 
-      const savedFbUrl = safeGetStorage(FIREBASE_URL_KEY) || '';
-      document.getElementById('firebase-url-input').value = savedFbUrl;
-      if (savedFbUrl) {
-        document.getElementById('sync-status-badge').textContent = 'Cloud Aktif';
-        document.getElementById('sync-status-badge').className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700';
-      }
-
       updateDateUI();
       switchTab('beranda');
+    }
+
+    // ==================== PERSETUJUAN PENDAFTARAN & CHECKLIST HAK AKSES (EKSKLUSIF ADMIN) ====================
+    function renderPendingSignups() {
+      const pending = db.pendingAccounts || [];
+      const count = pending.length;
+      const canApprove = isAdmin();
+
+      const headerBtn = document.getElementById('header-pending-notif');
+      const berandaAlert = document.getElementById('pending-signup-alert');
+      const aturPanel = document.getElementById('pending-approval-panel');
+
+      if (!canApprove || count === 0) {
+        if (headerBtn) headerBtn.classList.add('hidden');
+        if (berandaAlert) berandaAlert.classList.add('hidden');
+        if (aturPanel) aturPanel.classList.add('hidden');
+        return;
+      }
+
+      document.getElementById('header-pending-count').textContent = count;
+      document.getElementById('beranda-pending-badge').textContent = `${count} Menunggu`;
+      document.getElementById('atur-pending-count').textContent = `${count} Menunggu`;
+
+      headerBtn.classList.remove('hidden');
+      berandaAlert.classList.remove('hidden');
+      aturPanel.classList.remove('hidden');
+
+      const renderItem = (p) => {
+        const roleLabel = p.role === 'guru' ? 'User Guru' : 'User Orang Tua';
+        const childInfo = p.role === 'wali'
+          ? `Anak: <b>${p.muridName}</b> (${p.muridProgram || 'Keduanya'})`
+          : 'Mendaftar sebagai Guru Pengajar';
+        return `
+          <div class="bg-white p-3 rounded-xl border border-amber-200 flex items-center justify-between gap-2 text-xs">
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-[9px] font-extrabold uppercase">${roleLabel}</span>
+                <p class="font-extrabold text-slate-800 truncate">${p.name}</p>
+              </div>
+              <p class="text-[10px] text-slate-500 mt-0.5 truncate">User: <b>${p.username}</b> • ${childInfo}</p>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              <button type="button" onclick="openApprovePendingModal('${p.id}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white text-[10px] font-bold shadow-xs">
+                Atur Izin
+              </button>
+              <button type="button" onclick="rejectPendingAccount('${p.id}')" class="px-2 py-1.5 rounded-lg bg-rose-100 text-rose-700 text-[10px] font-bold">
+                Tolak
+              </button>
+            </div>
+          </div>
+        `;
+      };
+
+      document.getElementById('beranda-pending-list').innerHTML = pending.map(renderItem).join('');
+      document.getElementById('pending-account-list').innerHTML = pending.map(renderItem).join('');
+    }
+
+    function openPendingApprovalShortcut() {
+      switchTab('atur');
+    }
+
+    function buildPermissionCheckboxesHTML(prefix, currentPerms) {
+      return PERMISSION_ITEMS.map(item => {
+        const checked = currentPerms && currentPerms[item.key] ? 'checked' : '';
+        return `
+          <label class="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-white/80 cursor-pointer select-none">
+            <input type="checkbox" id="${prefix}-${item.key}" ${checked}
+              class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300" />
+            <span class="text-xs font-semibold text-slate-700">${item.label}</span>
+          </label>
+        `;
+      }).join('');
+    }
+
+    function readPermissionCheckboxes(prefix) {
+      const result = {};
+      PERMISSION_ITEMS.forEach(item => {
+        const el = document.getElementById(`${prefix}-${item.key}`);
+        result[item.key] = el ? el.checked : false;
+      });
+      return result;
+    }
+
+    function openApprovePendingModal(pendingId) {
+      if (!isAdmin()) return;
+      const p = db.pendingAccounts.find(x => x.id === pendingId);
+      if (!p) return;
+
+      document.getElementById('approve-pending-id').value = p.id;
+      document.getElementById('approve-user-name').textContent = p.name;
+      document.getElementById('approve-user-role').textContent = p.role === 'guru' ? 'User Guru' : 'User Orang Tua';
+      document.getElementById('approve-user-username').textContent = p.username;
+      document.getElementById('approve-user-pin').textContent = p.pin;
+
+      const nextCode = p.role === 'guru' ? generateNextGuruCode(activeDate) : generateNextMuridCode(activeDate);
+      document.getElementById('approve-auto-code-info').textContent =
+        p.role === 'guru'
+          ? `Nomor Induk Guru Otomatis: ${nextCode}`
+          : `Nomor Induk Murid Otomatis: ${nextCode} (${p.muridName})`;
+
+      const defaultPerms = getDefaultPermissions(p.role);
+      document.getElementById('approve-permissions-checklist').innerHTML = buildPermissionCheckboxesHTML('appr-perm', defaultPerms);
+      document.getElementById('modal-approve-pending').classList.remove('hidden');
+    }
+
+    function confirmApprovePending() {
+      if (!isAdmin()) return;
+      const pendingId = document.getElementById('approve-pending-id').value;
+      const idx = db.pendingAccounts.findIndex(x => x.id === pendingId);
+      if (idx === -1) return;
+
+      const p = db.pendingAccounts[idx];
+      const chosenPermissions = readPermissionCheckboxes('appr-perm');
+      let assignedInduk = '';
+      let linkedMuridCode = null;
+
+      if (p.role === 'wali') {
+        linkedMuridCode = generateNextMuridCode(activeDate);
+        assignedInduk = linkedMuridCode;
+        db.murid.push({
+          id: 'm-' + Date.now(),
+          code: linkedMuridCode,
+          pin: p.pin,
+          name: p.muridName || p.name,
+          program: p.muridProgram || 'Keduanya',
+          kelas: p.muridKelas || '-',
+          wali: p.name,
+          regMonth: activeDate.slice(0, 7)
+        });
+      } else {
+        assignedInduk = generateNextGuruCode(activeDate);
+      }
+
+      db.accounts.push({
+        id: 'acc-' + Date.now(),
+        username: p.username,
+        pin: p.pin,
+        name: p.name,
+        role: p.role,
+        indukCode: assignedInduk,
+        muridCode: linkedMuridCode,
+        permissions: chosenPermissions
+      });
+
+      db.pendingAccounts.splice(idx, 1);
+      saveDB();
+      closeModal('modal-approve-pending');
+      refreshAllViews();
+      alert(`Pendaftaran "${p.name}" disetujui!\nNomor Induk: ${assignedInduk}`);
+    }
+
+    function rejectPendingFromModal() {
+      const pendingId = document.getElementById('approve-pending-id').value;
+      closeModal('modal-approve-pending');
+      rejectPendingAccount(pendingId);
+    }
+
+    function rejectPendingAccount(pendingId) {
+      if (!isAdmin()) return;
+      if (!confirm('Tolak dan hapus permintaan pendaftaran ini?')) return;
+      db.pendingAccounts = db.pendingAccounts.filter(x => x.id !== pendingId);
+      saveDB();
+      refreshAllViews();
     }
 
     // ==================== NAVIGASI & TANGGAL ====================
@@ -852,6 +1468,11 @@
     }
 
     function switchTab(tabName) {
+      // Cegah akses tab jika dicabut izinnya oleh Admin
+      if (['murid', 'hadir', 'mengaji', 'les', 'laporan'].includes(tabName) && !hasPerm(tabName)) {
+        return alert('Akses ke modul ini belum diaktifkan oleh Admin.');
+      }
+
       ['beranda', 'murid', 'hadir', 'mengaji', 'les', 'laporan', 'atur'].forEach(t => {
         const el = document.getElementById('view-' + t);
         if (el) el.classList.toggle('hidden', t !== tabName);
@@ -859,9 +1480,10 @@
 
       document.querySelectorAll('.nav-btn').forEach(btn => {
         const isMatch = btn.dataset.nav === tabName;
-        btn.className = isMatch
+        const isHidden = btn.classList.contains('hidden');
+        btn.className = (isMatch
           ? 'nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-blue-600 bg-blue-50/80 font-bold'
-          : 'nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-medium';
+          : 'nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-medium') + (isHidden ? ' hidden' : '');
       });
 
       const scrollArea = document.getElementById('main-scroll-area');
@@ -871,6 +1493,8 @@
 
     function refreshAllViews() {
       updateHeaderStats();
+      renderPendingSignups();
+      renderPhotoGallery();
       renderTodayActivity();
       renderMuridList();
       renderHadirList();
@@ -878,7 +1502,7 @@
       renderLesList();
       populateReportSelectors();
       renderReportPreview();
-      if (currentUser && currentUser.role === 'superadmin') renderAccountList();
+      if (isAdmin()) renderAccountList();
     }
 
     function updateHeaderStats() {
@@ -894,6 +1518,137 @@
         : allowedMurid.length;
       document.getElementById('stat-mengaji').textContent = hadirMengajiCount;
       document.getElementById('stat-les').textContent = hadirLesCount;
+    }
+
+    // ==================== MODUL DOKUMENTASI FOTO KEGIATAN (GURU KAPAN SAJA) ====================
+    let pendingCompressedImage = null;
+
+    function openPhotoDocModal() {
+      if (!canUploadPhoto()) return alert('Anda tidak memiliki izin mengunggah dokumentasi foto.');
+      pendingCompressedImage = null;
+      document.getElementById('doc-photo-file').value = '';
+      document.getElementById('doc-photo-caption').value = '';
+      const prevEl = document.getElementById('doc-photo-preview');
+      prevEl.src = '';
+      prevEl.classList.add('hidden');
+
+      const now = new Date();
+      const nowLabel = now.toLocaleDateString('id-ID', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      }) + ' • ' + now.toTimeString().slice(0, 5);
+      document.getElementById('doc-photo-auto-date').textContent = nowLabel;
+      document.getElementById('modal-photo-doc').classList.remove('hidden');
+    }
+
+    function previewDocPhoto(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 800;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+            else { w = Math.round((w * maxDim) / h); h = maxDim; }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          pendingCompressedImage = canvas.toDataURL('image/jpeg', 0.72);
+          const prevEl = document.getElementById('doc-photo-preview');
+          prevEl.src = pendingCompressedImage;
+          prevEl.classList.remove('hidden');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function savePhotoDoc() {
+      if (!canUploadPhoto()) return;
+      const caption = document.getElementById('doc-photo-caption').value.trim();
+      if (!pendingCompressedImage) return alert('Silakan pilih atau ambil foto terlebih dahulu.');
+      if (!caption) return alert('Harap isi keterangan singkat dokumentasi.');
+
+      const now = new Date();
+      const isoDate = now.toISOString().slice(0, 10);
+      const displayDate = now.toLocaleDateString('id-ID', {
+        day: 'numeric', month: 'short', year: 'numeric'
+      }) + ' ' + now.toTimeString().slice(0, 5);
+
+      db.photos.unshift({
+        id: 'pic-' + Date.now(),
+        image: pendingCompressedImage,
+        caption,
+        dateISO: isoDate,
+        dateLabel: displayDate,
+        author: currentUser.name
+      });
+
+      if (db.photos.length > 30) db.photos = db.photos.slice(0, 30);
+      saveDB();
+      closeModal('modal-photo-doc');
+      renderPhotoGallery();
+    }
+
+    function renderPhotoGallery() {
+      const container = document.getElementById('dashboard-photo-gallery');
+      if (!container) return;
+      const items = db.photos || [];
+
+      if (items.length === 0) {
+        container.className = 'text-xs text-slate-400 italic';
+        container.innerHTML = `<p>Belum ada dokumentasi foto kegiatan.</p>`;
+        return;
+      }
+
+      container.className = 'grid grid-cols-2 gap-2.5';
+      container.innerHTML = items.slice(0, 6).map(pic => `
+        <div onclick="openPhotoViewer('${pic.id}')" class="group bg-slate-50 rounded-2xl overflow-hidden border border-slate-200/80 cursor-pointer active:scale-[0.98] transition shadow-xs">
+          <div class="relative aspect-[4/3] bg-slate-200 overflow-hidden">
+            <img src="${pic.image}" alt="${pic.caption}" class="w-full h-full object-cover" />
+            <span class="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md bg-slate-900/75 text-white text-[9px] font-bold">
+              ${pic.dateLabel}
+            </span>
+          </div>
+          <div class="p-2">
+            <p class="text-[11px] font-bold text-slate-800 line-clamp-2 leading-snug">${pic.caption}</p>
+            <p class="text-[9px] text-slate-400 mt-0.5 truncate">Oleh: ${pic.author || 'Guru'}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openPhotoViewer(picId) {
+      const pic = (db.photos || []).find(p => p.id === picId);
+      if (!pic) return;
+      document.getElementById('viewer-photo-img').src = pic.image;
+      document.getElementById('viewer-photo-date').textContent = pic.dateLabel;
+      document.getElementById('viewer-photo-author').textContent = 'Oleh: ' + (pic.author || 'Guru');
+      document.getElementById('viewer-photo-caption').textContent = pic.caption;
+
+      const delBtn = document.getElementById('btn-delete-photo-doc');
+      if (canEditOrDelete()) {
+        delBtn.classList.remove('hidden');
+        delBtn.onclick = function() { deletePhotoDoc(pic.id); };
+      } else {
+        delBtn.classList.add('hidden');
+      }
+      document.getElementById('modal-photo-viewer').classList.remove('hidden');
+    }
+
+    function deletePhotoDoc(picId) {
+      if (!canEditOrDelete()) return;
+      if (!confirm('Hapus foto dokumentasi ini?')) return;
+      db.photos = (db.photos || []).filter(p => p.id !== picId);
+      saveDB();
+      closeModal('modal-photo-viewer');
+      renderPhotoGallery();
     }
 
     function renderTodayActivity() {
@@ -936,23 +1691,7 @@
       container.innerHTML = html;
     }
 
-    // ==================== MODUL DATA MURID (SOL + YY + MM + NNN) ====================
-    function generateNextMuridCode(dateStr) {
-      const refDate = dateStr || activeDate || new Date().toISOString().slice(0, 10);
-      const yy = refDate.slice(2, 4);
-      const mm = refDate.slice(5, 7);
-      const prefix = `SOL${yy}${mm}`;
-      let maxSeq = 0;
-      db.murid.forEach(m => {
-        const c = (m.code || '').toUpperCase();
-        if (c.startsWith(prefix)) {
-          const seqPart = parseInt(c.slice(prefix.length), 10);
-          if (!isNaN(seqPart) && seqPart > maxSeq) maxSeq = seqPart;
-        }
-      });
-      return `${prefix}${String(maxSeq + 1).padStart(3, '0')}`;
-    }
-
+    // ==================== MODUL DATA MURID ====================
     function renderMuridList() {
       const q = (document.getElementById('search-murid').value || '').toLowerCase();
       const list = getAccessibleMurid().filter(m =>
@@ -975,7 +1714,7 @@
             <div class="min-w-0">
               <p class="text-xs font-extrabold text-slate-800 truncate">${m.name}</p>
               <p class="text-[11px] text-slate-500 truncate">${m.kelas || '-'} • Program: <b>${m.program}</b></p>
-              <p class="text-[10px] text-slate-400 truncate">Wali: ${m.wali || '-'} ${currentUser.role === 'superadmin' ? `• PIN Wali: <b class="text-slate-600">${m.pin}</b>` : ''}</p>
+              <p class="text-[10px] text-slate-400 truncate">Wali: ${m.wali || '-'} ${isAdmin() ? `• PIN Wali: <b class="text-slate-600">${m.pin}</b>` : ''}</p>
             </div>
           </div>
           ${canEditOrDelete() ? `
@@ -1007,8 +1746,8 @@
     }
 
     function openMuridModal(editId = null) {
-      if (editId && !canEditOrDelete()) return alert('Guru hanya memiliki akses menambah data baru, tidak dapat mengubah data lama.');
-      if (!editId && !canWrite()) return;
+      if (editId && !canEditOrDelete()) return alert('Hanya Admin yang dapat mengubah data lama.');
+      if (!editId && !canWrite()) return alert('Anda tidak memiliki izin menambah data baru.');
 
       document.getElementById('murid-edit-id').value = editId || '';
       if (editId) {
@@ -1059,7 +1798,7 @@
     }
 
     function deleteMurid(id) {
-      if (!canEditOrDelete()) return alert('Hanya Super Admin yang dapat menghapus data.');
+      if (!canEditOrDelete()) return alert('Hanya Admin yang dapat menghapus data.');
       if (!confirm('Hapus data murid ini?')) return;
       db.murid = db.murid.filter(m => m.id !== id);
       saveDB();
@@ -1095,8 +1834,8 @@
 
       container.innerHTML = list.map(m => {
         const isPresent = presentIds.has(m.id);
-        const lockedForGuru = isPresent && currentUser.role === 'guru';
-        const disabled = isWali() || lockedForGuru;
+        const lockedForNonAdmin = isPresent && !isAdmin();
+        const disabled = !canWrite() || lockedForNonAdmin;
 
         return `
           <div onclick="${disabled ? '' : `toggleAttendance('${m.id}')`}"
@@ -1106,7 +1845,7 @@
                 <span class="px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-600">${m.code}</span>
                 <p class="text-xs font-bold text-slate-800 truncate">${m.name}</p>
               </div>
-              <p class="text-[11px] text-slate-500 mt-0.5">${isPresent ? 'Status: Hadir' : 'Status: Belum Hadir'} ${lockedForGuru ? '• (Terkunci)' : ''}</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">${isPresent ? 'Status: Hadir' : 'Status: Belum Hadir'} ${lockedForNonAdmin ? '• (Terkunci)' : ''}</p>
             </div>
             <div class="w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs ${isPresent ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-300'}">
               ✓
@@ -1126,7 +1865,7 @@
         arr.push(muridId);
       } else {
         if (!canEditOrDelete()) {
-          return alert('Guru tidak dapat membatalkan kehadiran yang sudah tercatat.');
+          return alert('Hanya Admin yang dapat membatalkan kehadiran yang sudah tercatat.');
         }
         arr.splice(idx, 1);
       }
@@ -1187,8 +1926,8 @@
     }
 
     function openMengajiModal(editId = null) {
-      if (editId && !canEditOrDelete()) return alert('Guru tidak memiliki akses mengubah catatan lama.');
-      if (!editId && !canWrite()) return;
+      if (editId && !canEditOrDelete()) return alert('Hanya Admin yang dapat mengubah catatan lama.');
+      if (!editId && !canWrite()) return alert('Anda tidak memiliki izin mencatat data baru.');
 
       const select = document.getElementById('mengaji-murid-id');
       select.innerHTML = db.murid.map(m => `<option value="${m.id}">${m.code} - ${m.name}</option>`).join('');
@@ -1291,8 +2030,8 @@
     }
 
     function openLesModal(editId = null) {
-      if (editId && !canEditOrDelete()) return alert('Guru tidak memiliki akses mengubah catatan lama.');
-      if (!editId && !canWrite()) return;
+      if (editId && !canEditOrDelete()) return alert('Hanya Admin yang dapat mengubah catatan lama.');
+      if (!editId && !canWrite()) return alert('Anda tidak memiliki izin mencatat data baru.');
 
       const select = document.getElementById('les-murid-id');
       select.innerHTML = db.murid.map(m => `<option value="${m.id}">${m.code} - ${m.name}</option>`).join('');
@@ -1462,8 +2201,8 @@
       const bothCodes = new Set(muridKeduanya.map(m => m.code));
       const detailAttKeduanya = attendanceRows.filter(r => bothCodes.has(r.code));
       const detailAttTunggal = attendanceRows.filter(r => !bothCodes.has(r.code));
+      const signerName = currentUser ? currentUser.name : 'Pengajar Taman Belajar';
 
-      // Jalur Utama: jsPDF + AutoTable (langsung membangun file PDF biner dan mengunduhnya seketika)
       if (window.jspdf && window.jspdf.jsPDF) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -1674,18 +2413,16 @@
         doc.setFont('helvetica', 'bold');
         doc.text('Pengajar Taman Belajar', 165, signY + 4.5, { align: 'center' });
         doc.line(142, signY + 20, 188, signY + 20);
-        doc.text('Khasanah', 165, signY + 24.5, { align: 'center' });
+        doc.text(signerName, 165, signY + 24.5, { align: 'center' });
 
-        // Simpan dan unduh langsung sebagai file PDF biner
         const pdfBlob = doc.output('blob');
         triggerDirectBlobDownload(pdfBlob, filename);
 
-        statusEl.textContent = `File "${filename}" berhasil dibuat dan diunduh! Cek folder Download HP/browser Anda.`;
+        statusEl.textContent = `File "${filename}" berhasil diunduh!`;
         statusEl.classList.remove('hidden');
         return;
       }
 
-      // Cadangan Offline Murni (jika CDN jsPDF sedang tidak terjangkau)
       const fallbackBlob = buildMinimalOfflinePDF(monthStr, targetMuridList, attendanceRows, mengajiRows, lesRows);
       triggerDirectBlobDownload(fallbackBlob, filename);
       statusEl.textContent = `File "${filename}" berhasil diunduh (Mode Offline)!`;
@@ -1789,7 +2526,7 @@
       }
     }
 
-    // ==================== PENGATURAN AKUN MANDIRI & SUPER ADMIN ====================
+    // ==================== PENGATURAN AKUN MANDIRI & KONTROL USER ADMIN ====================
     function saveSelfAccountChanges() {
       if (!currentUser) return;
       const newName = document.getElementById('self-acc-name').value.trim();
@@ -1818,7 +2555,9 @@
             pin: newPin,
             name: newName,
             role: 'wali',
-            muridCode: currentUser.muridCode
+            indukCode: currentUser.muridCode,
+            muridCode: currentUser.muridCode,
+            permissions: getDefaultPermissions('wali')
           });
         }
       } else {
@@ -1843,61 +2582,91 @@
 
     function renderAccountList() {
       const container = document.getElementById('account-list-container');
-      container.innerHTML = db.accounts.map(acc => `
-        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-xs">
-          <div class="min-w-0">
-            <p class="font-bold text-slate-800 truncate">${acc.name}</p>
-            <p class="text-[10px] text-slate-600">User: <b>${acc.username}</b> • PIN: <b>${acc.pin}</b></p>
-            <p class="text-[10px] text-indigo-700 font-bold uppercase">${acc.role} ${acc.muridCode ? `• ID Anak: ${acc.muridCode}` : ''}</p>
+      container.innerHTML = db.accounts.map(acc => {
+        const roleTag = acc.role === 'superadmin' ? 'ADMIN' : (acc.role === 'guru' ? 'USER GURU' : 'USER ORTU');
+        const activePermCount = PERMISSION_ITEMS.filter(i => acc.permissions && acc.permissions[i.key]).length;
+        return `
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-xs">
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 text-[9px] font-extrabold">${acc.indukCode || '-'}</span>
+                <p class="font-bold text-slate-800 truncate">${acc.name}</p>
+              </div>
+              <p class="text-[10px] text-slate-600 mt-0.5">User: <b>${acc.username}</b> • PIN: <b>${acc.pin}</b></p>
+              <p class="text-[10px] text-slate-500 font-semibold">${roleTag} • ${activePermCount}/${PERMISSION_ITEMS.length} Izin Modul Aktif</p>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              <button type="button" onclick="openAccountModal('${acc.id}')" class="px-2 py-1 rounded-lg bg-amber-100 text-amber-800 text-[10px] font-bold">Edit</button>
+              ${acc.id !== currentUser.id ? `
+                <button type="button" onclick="deleteAccount('${acc.id}')" class="px-2 py-1 rounded-lg bg-rose-100 text-rose-700 text-[10px] font-bold">Hapus</button>
+              ` : ''}
+            </div>
           </div>
-          <div class="flex items-center gap-1 shrink-0">
-            <button type="button" onclick="openAccountModal('${acc.id}')" class="px-2 py-1 rounded-lg bg-amber-100 text-amber-800 text-[10px] font-bold">Edit</button>
-            ${acc.id !== currentUser.id ? `
-              <button type="button" onclick="deleteAccount('${acc.id}')" class="px-2 py-1 rounded-lg bg-rose-100 text-rose-700 text-[10px] font-bold">Hapus</button>
-            ` : ''}
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function openAccountModal(editId = null) {
-      if (currentUser.role !== 'superadmin') return;
+      if (!isAdmin()) return;
       document.getElementById('acc-edit-id').value = editId || '';
       const muridSelect = document.getElementById('acc-murid-code');
       muridSelect.innerHTML = db.murid.map(m => `<option value="${m.code}">${m.code} - ${m.name}</option>`).join('');
 
       if (editId) {
-        const acc = db.accounts.find(a => a.id === editId);
-        document.getElementById('modal-account-title').textContent = 'Edit Akun Pengguna';
+        const acc = normalizeAccount(db.accounts.find(a => a.id === editId));
+        document.getElementById('modal-account-title').textContent = 'Edit Akun & Hak Akses User';
         document.getElementById('acc-role').value = acc.role;
+        document.getElementById('acc-induk-code').value = acc.indukCode || '';
         document.getElementById('acc-name').value = acc.name;
         document.getElementById('acc-username').value = acc.username;
         document.getElementById('acc-pin').value = acc.pin;
         if (acc.muridCode) muridSelect.value = acc.muridCode;
+        document.getElementById('acc-permissions-checklist').innerHTML = buildPermissionCheckboxesHTML('acc-perm', acc.permissions);
       } else {
-        document.getElementById('modal-account-title').textContent = 'Tambah Akun Pengguna';
+        document.getElementById('modal-account-title').textContent = 'Tambah Akun User Baru';
         document.getElementById('acc-role').value = 'guru';
+        document.getElementById('acc-induk-code').value = generateNextGuruCode(activeDate);
         document.getElementById('acc-name').value = '';
         document.getElementById('acc-username').value = '';
         document.getElementById('acc-pin').value = '1234';
+        document.getElementById('acc-permissions-checklist').innerHTML = buildPermissionCheckboxesHTML('acc-perm', getDefaultPermissions('guru'));
       }
       toggleAccMuridField();
       document.getElementById('modal-account').classList.remove('hidden');
     }
 
+    function onAccRoleChange() {
+      const role = document.getElementById('acc-role').value;
+      const editId = document.getElementById('acc-edit-id').value;
+      toggleAccMuridField();
+      if (!editId) {
+        if (role === 'guru') {
+          document.getElementById('acc-induk-code').value = generateNextGuruCode(activeDate);
+        } else if (role === 'wali') {
+          document.getElementById('acc-induk-code').value = document.getElementById('acc-murid-code').value || generateNextMuridCode(activeDate);
+        } else {
+          document.getElementById('acc-induk-code').value = 'ADM2611001';
+        }
+        document.getElementById('acc-permissions-checklist').innerHTML = buildPermissionCheckboxesHTML('acc-perm', getDefaultPermissions(role));
+      }
+    }
+
     function toggleAccMuridField() {
       const role = document.getElementById('acc-role').value;
       document.getElementById('acc-murid-wrapper').classList.toggle('hidden', role !== 'wali');
+      document.getElementById('acc-permissions-section').classList.toggle('hidden', role === 'superadmin');
     }
 
     function saveAccountForm() {
-      if (currentUser.role !== 'superadmin') return;
+      if (!isAdmin()) return;
       const editId = document.getElementById('acc-edit-id').value;
       const role = document.getElementById('acc-role').value;
       const muridCode = role === 'wali' ? document.getElementById('acc-murid-code').value : null;
+      const indukCode = role === 'wali' ? muridCode : (document.getElementById('acc-induk-code').value || generateNextGuruCode(activeDate));
       const name = document.getElementById('acc-name').value.trim();
       const username = document.getElementById('acc-username').value.trim();
       const pin = document.getElementById('acc-pin').value.trim();
+      const permissions = role === 'superadmin' ? getDefaultPermissions('superadmin') : readPermissionCheckboxes('acc-perm');
 
       if (!name || !username || !pin) return alert('Nama, Username, dan PIN wajib diisi.');
 
@@ -1908,14 +2677,14 @@
       if (editId) {
         const idx = db.accounts.findIndex(a => a.id === editId);
         if (idx !== -1) {
-          db.accounts[idx] = { ...db.accounts[idx], role, muridCode, name, username, pin };
+          db.accounts[idx] = { ...db.accounts[idx], role, indukCode, muridCode, name, username, pin, permissions };
           if (editId === currentUser.id) {
-            currentUser = { ...db.accounts[idx] };
+            currentUser = normalizeAccount(db.accounts[idx]);
             safeSetSession(SESSION_KEY, JSON.stringify(currentUser));
           }
         }
       } else {
-        db.accounts.push({ id: 'acc-' + Date.now(), username, pin, name, role, muridCode });
+        db.accounts.push({ id: 'acc-' + Date.now(), username, pin, name, role, indukCode, muridCode, permissions });
       }
 
       if (role === 'wali' && muridCode) {
@@ -1929,33 +2698,25 @@
     }
 
     function deleteAccount(id) {
-      if (currentUser.role !== 'superadmin') return;
-      if (!confirm('Hapus akun pengguna ini?')) return;
+      if (!isAdmin()) return;
+      if (!confirm('Hapus akun user ini?')) return;
       db.accounts = db.accounts.filter(a => a.id !== id);
       saveDB();
       renderAccountList();
     }
 
-    // ==================== FIREBASE & BACKUP JSON ====================
-    function getFirebaseEndpoint() {
-      const base = (safeGetStorage(FIREBASE_URL_KEY) || '').trim().replace(/\/+$/, '');
-      return base ? `${base}/taman_belajar_db.json` : null;
-    }
+    // ==================== FIREBASE REALTIME DATABASE AUTO-SYNC PERMANEN ====================
+    let isSyncingNow = false;
+    let lastLocalMutationAt = 0;
 
-    function saveFirebaseConfig() {
-      const url = document.getElementById('firebase-url-input').value.trim();
-      if (!url) {
-        safeSetStorage(FIREBASE_URL_KEY, '');
-        document.getElementById('sync-status-badge').textContent = 'Mode Lokal';
-        return alert('URL Firebase dikosongkan. Aplikasi berjalan dalam mode lokal.');
-      }
-      safeSetStorage(FIREBASE_URL_KEY, url);
-      pushToFirebase(true);
+    function getFirebaseEndpoint() {
+      return `${FIREBASE_DB_URL.replace(/\/+$/, '')}/taman_belajar_db.json`;
     }
 
     async function pushToFirebase(showAlert = false) {
       const endpoint = getFirebaseEndpoint();
-      if (!endpoint) return;
+      lastLocalMutationAt = Date.now();
+      isSyncingNow = true;
       try {
         const res = await fetch(endpoint, {
           method: 'PUT',
@@ -1963,45 +2724,81 @@
           body: JSON.stringify(db)
         });
         if (res.ok) {
-          document.getElementById('sync-status-badge').textContent = 'Tersinkronisasi';
-          document.getElementById('sync-status-badge').className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700';
+          const badge = document.getElementById('sync-status-badge');
+          if (badge) {
+            badge.textContent = 'Auto-Sync Aktif';
+            badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700';
+          }
           if (showAlert) alert('Data berhasil disinkronkan ke Firebase!');
         }
       } catch (err) {
-        if (showAlert) alert('Gagal terhubung ke Firebase.');
+        const badge = document.getElementById('sync-status-badge');
+        if (badge) {
+          badge.textContent = 'Mode Offline';
+          badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700';
+        }
+      } finally {
+        isSyncingNow = false;
       }
     }
 
     async function pullFromFirebase(showAlert = false) {
+      if (isSyncingNow) return;
+      if (!showAlert && (Date.now() - lastLocalMutationAt < 3000)) return;
       const endpoint = getFirebaseEndpoint();
-      if (!endpoint) {
-        if (showAlert) alert('Masukkan URL Firebase terlebih dahulu.');
-        return;
-      }
       try {
-        const res = await fetch(endpoint);
+        const res = await fetch(endpoint, { cache: 'no-store' });
         const cloudData = await res.json();
         if (cloudData && cloudData.murid) {
-          db = normalizeDB(cloudData);
-          saveDB(false);
-          refreshAllViews();
-          if (showAlert) alert('Data terbaru berhasil ditarik dari Firebase!');
+          const normalized = normalizeDB(cloudData);
+          const currentStr = JSON.stringify(db);
+          const incomingStr = JSON.stringify(normalized);
+          if (currentStr !== incomingStr) {
+            db = normalized;
+            memoryFallbackDB = db;
+            safeSetStorage(STORAGE_KEY, incomingStr);
+            if (currentUser) {
+              const updatedSelf = db.accounts.find(a => a.id === currentUser.id);
+              if (updatedSelf) {
+                currentUser = normalizeAccount(updatedSelf);
+                safeSetSession(SESSION_KEY, JSON.stringify(currentUser));
+                initAppAfterLogin();
+              } else {
+                refreshAllViews();
+              }
+            }
+          }
+          const badge = document.getElementById('sync-status-badge');
+          if (badge) {
+            badge.textContent = 'Auto-Sync Aktif';
+            badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700';
+          }
+        } else if (cloudData === null) {
+          await pushToFirebase(false);
         }
       } catch (err) {
-        if (showAlert) alert('Gagal menarik data dari Firebase.');
+        // Tetap berjalan lancar menggunakan penyimpanan lokal saat offline
       }
     }
 
+    // Sinkronisasi otomatis setiap 5 detik dan saat aplikasi kembali aktif
+    setInterval(() => {
+      if (document.visibilityState === 'visible') pullFromFirebase(false);
+    }, 5000);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') pullFromFirebase(false);
+    });
+
+    // ==================== BACKUP JSON (EKSKLUSIF SUPER ADMIN) ====================
     function exportBackupJSON() {
-      const dataToExport = isWali()
-        ? { murid: getAccessibleMurid(), mengaji: db.mengaji.filter(x => getAccessibleMuridIds().has(x.muridId)), les: db.les.filter(x => getAccessibleMuridIds().has(x.muridId)) }
-        : db;
-      const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+      if (!isAdmin()) return alert('Hanya Admin yang dapat melakukan backup data.');
+      const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
       triggerDirectBlobDownload(blob, `backup_taman_belajar_${activeDate}.json`);
     }
 
     function importBackupJSON(event) {
-      if (currentUser.role !== 'superadmin') return alert('Hanya Super Admin yang dapat memulihkan database.');
+      if (!isAdmin()) return alert('Hanya Admin yang dapat memulihkan database.');
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
@@ -2010,9 +2807,9 @@
           const imported = JSON.parse(e.target.result);
           if (!imported.murid) throw new Error('Format tidak valid');
           db = normalizeDB(imported);
-          saveDB();
+          saveDB(true);
           refreshAllViews();
-          alert('Data cadangan berhasil dipulihkan!');
+          alert('Data cadangan berhasil dipulihkan & disinkronkan ke cloud!');
         } catch (err) {
           alert('File JSON tidak valid.');
         }
@@ -2024,9 +2821,16 @@
       document.getElementById(id).classList.add('hidden');
     }
 
+    // ==================== SERVICE WORKER PWA AMAN ====================
+    if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
     // ==================== INISIALISASI ====================
-    if (getFirebaseEndpoint()) pullFromFirebase(false);
+    pullFromFirebase(false);
     initAppAfterLogin();
-    <script>
+  </script>
 </body>
 </html>
