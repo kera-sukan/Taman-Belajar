@@ -4,14 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Taman Belajar - Belajar • Mengaji • Berkembang</title>
-  <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#2563eb" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <style>
     * {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
       box-sizing: border-box;
     }
@@ -20,54 +22,87 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
-      background-color: #e2e8f0;
+      background-color: #dbeafe;
     }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .menu-tile {
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
+    }
+    .menu-tile:active { transform: scale(0.97); }
   </style>
 </head>
 <body class="flex justify-center bg-slate-200 text-slate-800">
 
   <!-- CONTAINER UTAMA MOBILE-FIRST -->
-  <div id="app-shell" class="w-full max-w-md h-full bg-slate-50 shadow-2xl flex flex-col relative overflow-hidden">
+  <div id="app-shell" class="w-full max-w-md h-full bg-[#eef4ff] shadow-2xl flex flex-col relative overflow-hidden">
+
+    <!-- ==================== NOTIFIKASI TOAST PENGGANTI ALERT ==================== -->
+    <div id="toast-box" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-sm rounded-2xl px-4 py-3 shadow-xl border text-xs font-bold flex items-center justify-between gap-3 transition-all">
+      <span id="toast-message" class="leading-relaxed">Pesan</span>
+      <button type="button" onclick="hideToast()" class="px-2 py-0.5 rounded-lg bg-black/10 text-[10px] font-extrabold shrink-0">OK</button>
+    </div>
+
+    <!-- ==================== MODAL KONFIRMASI PENGGANTI CONFIRM ==================== -->
+    <div id="confirm-modal" class="hidden fixed inset-0 z-[95] bg-slate-900/60 flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl space-y-4 text-center">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl font-extrabold">?</div>
+        <p id="confirm-message" class="text-xs font-bold text-slate-700 leading-relaxed">Apakah Anda yakin?</p>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" id="confirm-cancel-btn" class="py-2.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold">Batal</button>
+          <button type="button" id="confirm-ok-btn" class="py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold shadow-sm">Ya, Lanjutkan</button>
+        </div>
+      </div>
+    </div>
 
     <!-- ==================== 1. GERBANG LOGIN & SIGN UP ==================== -->
-    <div id="auth-screen" class="absolute inset-0 z-50 bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 flex flex-col justify-between p-5 overflow-y-auto no-scrollbar">
-      <div class="pt-2 text-center text-white shrink-0">
-        <div class="w-14 h-14 mx-auto bg-white/15 rounded-2xl flex items-center justify-center border border-white/25 shadow-lg mb-2.5">
-          <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+    <div id="login-screen" class="absolute inset-0 z-50 bg-gradient-to-br from-[#2563eb] via-[#3b82f6] to-[#1d4ed8] flex flex-col justify-between p-5 overflow-y-auto">
+      <!-- Dekorasi gelombang latar -->
+      <div class="pointer-events-none absolute -top-20 -right-20 w-72 h-72 rounded-full bg-white/10 blur-xl"></div>
+      <div class="pointer-events-none absolute top-40 -left-24 w-64 h-64 rounded-full bg-sky-300/15 blur-xl"></div>
+
+      <div class="pt-4 text-center text-white relative z-10">
+        <div class="w-16 h-16 mx-auto bg-gradient-to-b from-white/25 to-white/10 rounded-2xl flex items-center justify-center border border-white/30 shadow-lg mb-2.5">
+          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
         </div>
-        <h1 class="text-xl font-extrabold tracking-tight">Taman Belajar</h1>
-        <p class="text-[11px] text-blue-100 mt-0.5">Belajar • Mengaji • Berkembang</p>
+        <h1 class="text-2xl font-extrabold tracking-tight">Taman Belajar</h1>
+        <p class="text-xs text-blue-100 mt-0.5">Belajar • Mengaji • Berkembang</p>
       </div>
 
-      <div class="bg-white rounded-3xl p-5 shadow-xl my-3 space-y-4 relative z-10">
-        <!-- Switcher Tab Login / Sign Up -->
-        <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-2xl relative z-20">
+      <div class="bg-white rounded-[28px] p-5 shadow-2xl my-auto relative z-10 border border-white/80">
+        <!-- Switch Tab Masuk / Daftar -->
+        <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-2xl mb-4">
           <button type="button" id="auth-tab-login" onclick="switchAuthMode('login')"
-            class="py-2.5 text-xs font-extrabold rounded-xl bg-blue-600 text-white shadow-sm transition cursor-pointer select-none">
+            class="py-2 text-xs font-extrabold rounded-xl bg-white text-blue-600 shadow-sm transition">
             Masuk (Login)
           </button>
           <button type="button" id="auth-tab-signup" onclick="switchAuthMode('signup')"
-            class="py-2.5 text-xs font-extrabold rounded-xl text-slate-600 hover:text-slate-800 transition cursor-pointer select-none">
+            class="py-2 text-xs font-bold rounded-xl text-slate-500 hover:text-slate-700 transition">
             Daftar (Sign Up)
           </button>
         </div>
 
-        <!-- MODE LOGIN -->
-        <div id="login-panel" class="space-y-3.5">
+        <!-- PANEL FORM LOGIN -->
+        <div id="auth-panel-login" class="space-y-3.5">
           <div>
-            <h2 class="text-base font-extrabold text-slate-800">Masuk Aplikasi</h2>
-            <p class="text-[11px] text-slate-500 mt-0.5">Masukkan Username atau Nomor ID dan PIN akun Anda.</p>
+            <h2 class="text-base font-extrabold text-slate-800">Selamat Datang Kembali</h2>
+            <p class="text-[11px] text-slate-500">Masukkan Username atau Nomor Induk dan PIN Anda.</p>
           </div>
 
           <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">Username / Nomor ID</label>
-            <input type="text" id="login-username" autocomplete="off" placeholder="Contoh: user atau nomor ID"
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Username / Nomor Induk</label>
+            <input type="text" id="login-username" autocomplete="off" placeholder="Contoh: superadmin atau nomor ID"
               onkeydown="if(event.key==='Enter'){event.preventDefault();handleLogin();}"
-              class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
+              class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
           </div>
 
           <div>
@@ -75,249 +110,343 @@
             <div class="relative">
               <input type="password" id="login-pin" inputmode="numeric" placeholder="Masukkan PIN"
                 onkeydown="if(event.key==='Enter'){event.preventDefault();handleLogin();}"
-                class="w-full pl-3.5 pr-12 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
-              <button type="button" onclick="togglePinVisibility('login-pin')" class="absolute right-3 top-2 text-slate-400 hover:text-slate-600 text-[11px] font-bold px-1 py-0.5">
+                class="w-full pl-3.5 pr-14 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
+              <button type="button" onclick="togglePinVisibility('login-pin')" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 text-xs font-bold px-1 py-0.5">
                 Lihat
               </button>
             </div>
           </div>
 
-          <p id="login-error" class="hidden text-xs font-semibold text-rose-600 bg-rose-50 px-3 py-2 rounded-xl border border-rose-200"></p>
+          <p id="login-error" class="hidden text-xs font-semibold text-rose-600 bg-rose-50 px-3 py-2 rounded-xl border border-rose-100"></p>
+          <p id="login-info" class="hidden text-xs font-semibold text-amber-700 bg-amber-50 px-3 py-2 rounded-xl border border-amber-200"></p>
 
           <button type="button" onclick="handleLogin()"
-            class="w-full py-3 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer">
+            class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] text-white font-bold text-sm rounded-2xl shadow-lg shadow-blue-500/25 transition">
             Masuk Sekarang
           </button>
+
+          <div class="pt-1 text-center">
+            <button type="button" onclick="fillDemoAdmin()" class="text-[11px] font-bold text-blue-600 hover:underline">
+              Isi Cepat Akun Admin (superadmin / 1234)
+            </button>
+          </div>
         </div>
 
-        <!-- MODE SIGN UP (TANPA INPUT NO INDUK — OTOMATIS DARI DATABASE SAAT DISETUJUI ADMIN) -->
-        <div id="signup-panel" class="hidden space-y-3">
+        <!-- PANEL FORM SIGN UP (TANPA INPUT NO INDUK - OTOMATIS DARI DATABASE) -->
+        <div id="auth-panel-signup" class="hidden space-y-3">
           <div>
-            <h2 class="text-base font-extrabold text-slate-800">Daftar Akun User Baru</h2>
-            <p class="text-[11px] text-slate-500 mt-0.5">Nomor Induk dibuat otomatis sesuai urutan database setelah disetujui Admin.</p>
+            <h2 class="text-base font-extrabold text-slate-800">Pendaftaran Akun User</h2>
+            <p class="text-[11px] text-slate-500">Nomor Induk diterbitkan otomatis berurutan setelah disetujui Admin.</p>
           </div>
 
           <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">Nama Lengkap *</label>
-            <input type="text" id="signup-name" placeholder="Contoh: Ibu Fatimah / Ustadz Ali"
-              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-[11px] font-bold text-slate-600 mb-1">Username *</label>
-              <input type="text" id="signup-username" autocomplete="off" placeholder="username_anda"
-                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-            </div>
-            <div>
-              <label class="block text-[11px] font-bold text-slate-600 mb-1">PIN Login (4–6 Digit) *</label>
-              <input type="password" id="signup-pin" inputmode="numeric" maxlength="8" placeholder="1234"
-                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">Kategori User *</label>
-            <select id="signup-role" onchange="toggleSignupWaliFields()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold">
-              <option value="wali">Orang Tua / Wali Murid (User)</option>
-              <option value="guru">Guru Pengajar (User)</option>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Daftar Sebagai *</label>
+            <select id="signup-role" onchange="toggleSignupFields()"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700">
+              <option value="wali">Orang Tua / Wali Murid</option>
+              <option value="guru">Guru Pengajar</option>
             </select>
           </div>
 
-          <div id="signup-wali-fields" class="space-y-2.5 bg-indigo-50/70 p-3 rounded-2xl border border-indigo-100">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Nama Lengkap Pendaftar *</label>
+            <input type="text" id="signup-name" placeholder="Nama lengkap Anda..."
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+          </div>
+
+          <div id="signup-child-fields" class="space-y-2.5 p-3 rounded-2xl bg-blue-50/70 border border-blue-100">
             <div>
-              <label class="block text-[11px] font-bold text-indigo-900 mb-1">Nama Lengkap Anak / Murid *</label>
-              <input type="text" id="signup-murid-name" placeholder="Nama anak yang didaftarkan..."
-                class="w-full px-3 py-1.5 bg-white border border-indigo-200 rounded-xl text-xs" />
+              <label class="block text-[11px] font-bold text-blue-900 mb-1">Nama Lengkap Anak (Murid) *</label>
+              <input type="text" id="signup-child-name" placeholder="Nama anak yang didaftarkan..."
+                class="w-full px-3 py-2 bg-white border border-blue-200 rounded-xl text-xs" />
             </div>
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-[11px] font-bold text-indigo-900 mb-1">Kelas / Usia Anak</label>
-                <input type="text" id="signup-murid-kelas" placeholder="SD Kelas 2"
-                  class="w-full px-3 py-1.5 bg-white border border-indigo-200 rounded-xl text-xs" />
-              </div>
-              <div>
-                <label class="block text-[11px] font-bold text-indigo-900 mb-1">Program Belajar</label>
-                <select id="signup-murid-program" class="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-xl text-xs font-semibold">
+                <label class="block text-[11px] font-bold text-blue-900 mb-1">Program Belajar</label>
+                <select id="signup-child-program" class="w-full px-2.5 py-2 bg-white border border-blue-200 rounded-xl text-xs font-semibold">
                   <option value="Keduanya">Mengaji & Les</option>
                   <option value="Mengaji">Mengaji Saja</option>
                   <option value="Les">Les Saja</option>
                 </select>
               </div>
+              <div>
+                <label class="block text-[11px] font-bold text-blue-900 mb-1">Kelas / Usia</label>
+                <input type="text" id="signup-child-kelas" placeholder="SD Kelas 2"
+                  class="w-full px-2.5 py-2 bg-white border border-blue-200 rounded-xl text-xs" />
+              </div>
             </div>
-            <p class="text-[10px] text-indigo-700 leading-snug">
-              * Nomor Induk Murid (<b>SOL...</b>) akan terbit otomatis setelah disetujui Admin.
-            </p>
           </div>
 
-          <div id="signup-guru-note" class="hidden bg-emerald-50/80 p-3 rounded-2xl border border-emerald-100">
-            <p class="text-[10px] text-emerald-800 leading-snug">
-              * Nomor Induk Guru (<b>GRU...</b>) dan hak akses modul akan diberikan otomatis setelah disetujui Admin.
-            </p>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Username Login *</label>
+              <input type="text" id="signup-username" placeholder="Buat username"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Buat PIN *</label>
+              <input type="text" id="signup-pin" inputmode="numeric" placeholder="4-6 angka"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold" />
+            </div>
           </div>
 
           <p id="signup-feedback" class="hidden text-xs font-semibold px-3 py-2 rounded-xl border"></p>
 
           <button type="button" onclick="handleSignUp()"
-            class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer">
-            Kirim Pendaftaran (Menunggu Izin Admin)
+            class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-[0.99] text-white font-bold text-xs rounded-2xl shadow-md transition">
+            Kirim Pendaftaran ke Admin
           </button>
         </div>
       </div>
 
-      <div class="text-center text-[11px] text-blue-100/80 pb-1 shrink-0">
-        Taman Belajar • Sinkronisasi Otomatis Cloud Firebase
+      <div class="text-center text-[11px] text-blue-100/90 pt-2 pb-1 relative z-10">
+        Taman Belajar • Sinkronisasi Firebase Otomatis
       </div>
     </div>
 
-    <!-- ==================== 2. FIXED HEADER & COMPACT SUMMARY ==================== -->
-    <header id="app-header" class="shrink-0 bg-gradient-to-br from-blue-600 via-blue-600 to-indigo-700 text-white px-4 pt-3 pb-4 rounded-b-[26px] shadow-md z-20">
-      <div class="flex items-center justify-between gap-2 mb-3">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-9 h-9 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-          </div>
-          <div class="truncate">
-            <h1 class="text-base font-extrabold leading-tight tracking-tight truncate">Taman Belajar</h1>
-            <p class="text-[10px] text-blue-100 truncate">Belajar • Mengaji • Berkembang</p>
-          </div>
-        </div>
+    <!-- ==================== 2. HEADER BIRU GELOMBANG & KARTU SAMBUTAN ==================== -->
+    <div class="shrink-0 relative z-20">
+      <!-- Latar Biru Melengkung -->
+      <div class="bg-gradient-to-br from-[#2563eb] via-[#3b82f6] to-[#1d4ed8] text-white px-4 pt-3.5 pb-16 rounded-b-[34px] relative overflow-hidden shadow-md">
+        <div class="pointer-events-none absolute -top-12 -left-10 w-44 h-44 rounded-full bg-white/10"></div>
+        <div class="pointer-events-none absolute top-4 right-8 w-36 h-36 rounded-full bg-sky-300/15"></div>
 
-        <div class="flex items-center gap-1.5 shrink-0">
-          <button type="button" id="header-pending-notif" onclick="openPendingApprovalShortcut()"
-            class="hidden px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500 text-white shadow-sm animate-pulse">
-            🔔 <span id="header-pending-count">0</span>
-          </button>
-          <span id="role-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-slate-900 shadow-sm">
-            USER
-          </span>
-          <button type="button" onclick="logout()" class="px-2.5 py-1 rounded-xl bg-white/15 hover:bg-white/25 text-[11px] font-bold text-white transition">
-            Keluar
-          </button>
-        </div>
-      </div>
+        <div class="flex items-center justify-between gap-2 relative z-10">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-b from-white/30 to-white/10 border border-white/30 flex items-center justify-center shrink-0 shadow-sm">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <div class="truncate">
+              <h1 class="text-[17px] font-extrabold leading-tight tracking-tight truncate">Taman Belajar</h1>
+              <p class="text-[10.5px] text-blue-100 truncate">Belajar • Mengaji • Berkembang</p>
+            </div>
+          </div>
 
-      <!-- Kartu Sambutan & Statistik Ringkas -->
-      <div class="bg-white text-slate-800 rounded-2xl p-3 shadow-sm">
-        <div class="flex items-center justify-between gap-2 mb-2.5">
-          <div class="min-w-0">
-            <p class="text-xs font-bold text-slate-800 truncate">Halo, <span id="user-display-name">User</span> 👋</p>
-            <p id="active-date-label" class="text-[10px] text-slate-500">Minggu, 22 November 2026</p>
-          </div>
-          <label class="relative inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200/70 text-[11px] font-semibold text-slate-700 cursor-pointer transition shrink-0">
-            <span>📅 Tanggal</span>
-            <input type="date" id="date-picker" class="absolute inset-0 opacity-0 cursor-pointer" onchange="changeActiveDate(this.value)" />
-          </label>
-        </div>
-
-        <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="bg-slate-50 rounded-xl py-1.5 px-2 border border-slate-100">
-            <p id="stat-murid" class="text-sm font-extrabold text-blue-600 leading-tight truncate">0</p>
-            <p id="stat-murid-label" class="text-[10px] font-medium text-slate-500">Murid Aktif</p>
-          </div>
-          <div class="bg-emerald-50/70 rounded-xl py-1.5 px-2 border border-emerald-100/80">
-            <p id="stat-mengaji" class="text-sm font-extrabold text-emerald-600 leading-tight">0</p>
-            <p class="text-[10px] font-medium text-slate-500">Hadir Mengaji</p>
-          </div>
-          <div class="bg-indigo-50/70 rounded-xl py-1.5 px-2 border border-indigo-100/80">
-            <p id="stat-les" class="text-sm font-extrabold text-indigo-600 leading-tight">0</p>
-            <p class="text-[10px] font-medium text-slate-500">Hadir Les</p>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span id="role-badge" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-extrabold bg-gradient-to-r from-amber-300 to-amber-400 text-slate-900 shadow-sm">
+              <span>👑</span> Admin
+            </span>
+            <button type="button" onclick="logout()" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 border border-white/25 text-[10.5px] font-bold text-white transition">
+              <span>↪</span> Keluar
+            </button>
           </div>
         </div>
       </div>
-    </header>
 
-    <!-- ==================== 3. AREA KONTEN UTAMA (SCROLLABLE) ==================== -->
-    <main id="main-scroll-area" class="flex-1 overflow-y-auto px-4 pt-3.5 pb-20 space-y-4 no-scrollbar">
+      <!-- Kartu Sambutan Mengambang -->
+      <div class="px-4 -mt-12 relative z-20">
+        <div class="glass-card rounded-[24px] p-3.5 shadow-lg shadow-blue-900/10 border border-white">
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <div class="min-w-0">
+              <p class="text-[14px] font-extrabold text-slate-800 truncate">Halo, <span id="user-display-name">Super Admin</span> 👋</p>
+              <p class="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                <span>🗓️</span> <span id="active-date-label">Minggu, 22 November 2026</span>
+              </p>
+            </div>
+            <label class="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-blue-50 border border-slate-200/80 text-[11px] font-bold text-slate-700 cursor-pointer transition shrink-0 shadow-2xs">
+              <span>📅 Tanggal</span>
+              <span class="text-slate-400">›</span>
+              <input type="date" id="date-picker" class="absolute inset-0 opacity-0 cursor-pointer" onchange="changeActiveDate(this.value)" />
+            </label>
+          </div>
 
-      <!-- TAB: BERANDA -->
-      <section id="view-beranda" class="space-y-4">
-        <!-- Notifikasi Pendaftar Baru (EKSKLUSIF SUPER ADMIN) -->
-        <div id="pending-signup-alert" class="hidden bg-amber-50 border border-amber-300 rounded-2xl p-3.5 space-y-2.5 shadow-sm">
-          <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-2">
-              <span class="w-6 h-6 rounded-full bg-amber-500 text-white text-xs font-extrabold flex items-center justify-center shrink-0">!</span>
-              <div>
-                <p class="text-xs font-extrabold text-amber-950">Permintaan Izin Pendaftaran Baru</p>
-                <p class="text-[10px] text-amber-800">Tentukan hak akses modul sebelum menyetujui User</p>
+          <!-- 3 Pil Statistik Modern -->
+          <div class="grid grid-cols-3 gap-2">
+            <div class="bg-gradient-to-br from-slate-50 to-blue-50/70 rounded-2xl p-2 border border-blue-100/70 flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 text-sm">👥</div>
+              <div class="min-w-0">
+                <span id="stat-murid" class="inline-block px-2 py-0.2 rounded-full bg-blue-600 text-white text-[11px] font-extrabold leading-tight truncate max-w-full">0</span>
+                <p id="stat-murid-label" class="text-[9.5px] font-semibold text-slate-500 truncate mt-0.5">Murid Aktif</p>
               </div>
             </div>
-            <span id="beranda-pending-badge" class="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-extrabold shrink-0">0</span>
+
+            <div class="bg-gradient-to-br from-emerald-50/80 to-teal-50/60 rounded-2xl p-2 border border-emerald-100/80 flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 text-sm">✓</div>
+              <div class="min-w-0">
+                <span id="stat-mengaji" class="inline-block px-2 py-0.2 rounded-full bg-emerald-600 text-white text-[11px] font-extrabold leading-tight">0</span>
+                <p class="text-[9.5px] font-semibold text-slate-500 truncate mt-0.5">Hadir Mengaji</p>
+              </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-purple-50/80 to-indigo-50/60 rounded-2xl p-2 border border-purple-100/80 flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0 text-sm">🎓</div>
+              <div class="min-w-0">
+                <span id="stat-les" class="inline-block px-2 py-0.2 rounded-full bg-purple-600 text-white text-[11px] font-extrabold leading-tight">0</span>
+                <p class="text-[9.5px] font-semibold text-slate-500 truncate mt-0.5">Hadir Les</p>
+              </div>
+            </div>
           </div>
-          <div id="beranda-pending-list" class="space-y-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 3. AREA KONTEN UTAMA (SCROLLABLE) ==================== -->
+    <main id="main-scroll-area" class="flex-1 overflow-y-auto px-4 pt-3.5 pb-24 space-y-4">
+
+      <!-- TAB: BERANDA (DASHBOARD) -->
+      <section id="view-beranda" class="space-y-4">
+
+        <!-- Notifikasi Antrean Pendaftaran (Khusus Super Admin) -->
+        <div id="admin-pending-banner" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-center justify-between gap-2 shadow-sm">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-amber-500 text-white font-extrabold flex items-center justify-center shrink-0 text-xs">!</div>
+            <div class="min-w-0">
+              <p id="admin-pending-text" class="text-xs font-extrabold text-amber-900 truncate">Ada pendaftar baru menunggu izin</p>
+              <p class="text-[10.5px] text-amber-700 truncate">Ketuk untuk meninjau & mengatur hak akses</p>
+            </div>
+          </div>
+          <button type="button" onclick="switchTab('atur')" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold rounded-xl shrink-0 shadow-2xs">
+            Tinjau
+          </button>
         </div>
 
         <div id="role-info-banner" class="hidden rounded-2xl p-3 text-xs border"></div>
 
-        <!-- Menu Utama Dinamis Sesuai Checklist Izin Admin -->
+        <!-- MENU UTAMA (2x3 KARTU MODERN DENGAN GRADASI & WATERMARK) -->
         <div>
           <div class="flex items-center justify-between mb-2.5">
-            <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Menu Utama</h2>
-            <span id="cloud-live-indicator" class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-              ● Cloud Otomatis
+            <div class="flex items-center gap-1.5">
+              <span class="text-blue-600 text-sm">❖</span>
+              <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Menu Utama</h2>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full bg-white/90 border border-blue-100 text-[10.5px] font-bold text-blue-600 shadow-2xs">
+              Lihat Semua ›
             </span>
           </div>
 
-          <div id="main-menu-grid" class="grid grid-cols-2 gap-3">
-            <button type="button" id="menu-card-les" onclick="switchTab('les')" class="text-left bg-blue-50/80 hover:bg-blue-50 border border-blue-100 rounded-2xl p-3.5 transition active:scale-[0.98]">
-              <div class="w-9 h-9 rounded-xl bg-blue-600 text-white font-extrabold text-sm flex items-center justify-center mb-2 shadow-sm">📘</div>
-              <p class="text-sm font-bold text-slate-800">Les & Bimbel</p>
-              <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">Nilai & materi belajar</p>
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Kartu 1: Les & Bimbel -->
+            <button type="button" id="tile-les" onclick="openModule('les')"
+              class="menu-tile text-left bg-gradient-to-br from-[#eef4ff] via-[#e2ecff] to-[#d6e4ff] border border-white rounded-[22px] p-3.5 shadow-sm">
+              <div class="pointer-events-none absolute -right-4 -bottom-4 w-20 h-20 rounded-full bg-blue-400/15"></div>
+              <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center mb-3 shadow-md shadow-blue-500/25">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg>
+              </div>
+              <div class="flex items-end justify-between gap-1 relative z-10">
+                <div class="min-w-0">
+                  <p class="text-[13.5px] font-extrabold text-slate-800 truncate">Les & Bimbel</p>
+                  <p class="text-[10.5px] text-slate-500 truncate mt-0.5">Nilai & materi belajar</p>
+                </div>
+                <span class="w-6 h-6 rounded-full bg-white/90 text-blue-600 flex items-center justify-center text-xs font-extrabold shrink-0 shadow-2xs">›</span>
+              </div>
             </button>
 
-            <button type="button" id="menu-card-mengaji" onclick="switchTab('mengaji')" class="text-left bg-emerald-50/80 hover:bg-emerald-50 border border-emerald-100 rounded-2xl p-3.5 transition active:scale-[0.98]">
-              <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white font-extrabold text-sm flex items-center justify-center mb-2 shadow-sm">📗</div>
-              <p class="text-sm font-bold text-slate-800">Mengaji</p>
-              <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">Iqro, Juz & kelancaran</p>
+            <!-- Kartu 2: Mengaji -->
+            <button type="button" id="tile-mengaji" onclick="openModule('mengaji')"
+              class="menu-tile text-left bg-gradient-to-br from-[#ecfdf5] via-[#dcfce7] to-[#d1fae5] border border-white rounded-[22px] p-3.5 shadow-sm">
+              <div class="pointer-events-none absolute right-1 bottom-1 text-emerald-600/15 text-5xl font-black select-none">🕌</div>
+              <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center mb-3 shadow-md shadow-emerald-500/25">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+              </div>
+              <div class="flex items-end justify-between gap-1 relative z-10">
+                <div class="min-w-0">
+                  <p class="text-[13.5px] font-extrabold text-slate-800 truncate">Mengaji</p>
+                  <p class="text-[10.5px] text-slate-500 truncate mt-0.5">Iqra, Jilid & Keislaman</p>
+                </div>
+                <span class="w-6 h-6 rounded-full bg-white/90 text-emerald-600 flex items-center justify-center text-xs font-extrabold shrink-0 shadow-2xs">›</span>
+              </div>
             </button>
 
-            <button type="button" id="menu-card-hadir" onclick="switchTab('hadir')" class="text-left bg-amber-50/80 hover:bg-amber-50 border border-amber-100 rounded-2xl p-3.5 transition active:scale-[0.98]">
-              <div class="w-9 h-9 rounded-xl bg-amber-500 text-white font-extrabold text-sm flex items-center justify-center mb-2 shadow-sm">✅</div>
-              <p class="text-sm font-bold text-slate-800">Kehadiran</p>
-              <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">Absensi Mengaji & Les</p>
+            <!-- Kartu 3: Kehadiran -->
+            <button type="button" id="tile-hadir" onclick="openModule('hadir')"
+              class="menu-tile text-left bg-gradient-to-br from-[#fffbeb] via-[#fef3c7] to-[#fde68a]/70 border border-white rounded-[22px] p-3.5 shadow-sm">
+              <div class="pointer-events-none absolute -right-4 -bottom-4 w-20 h-20 rounded-full bg-amber-400/15"></div>
+              <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center mb-3 shadow-md shadow-amber-500/25">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <div class="flex items-end justify-between gap-1 relative z-10">
+                <div class="min-w-0">
+                  <p class="text-[13.5px] font-extrabold text-slate-800 truncate">Kehadiran</p>
+                  <p class="text-[10.5px] text-slate-500 truncate mt-0.5">Absensi Mengaji & Les</p>
+                </div>
+                <span class="w-6 h-6 rounded-full bg-white/90 text-amber-600 flex items-center justify-center text-xs font-extrabold shrink-0 shadow-2xs">›</span>
+              </div>
             </button>
 
-            <button type="button" id="menu-card-laporan" onclick="switchTab('laporan')" class="text-left bg-purple-50/80 hover:bg-purple-50 border border-purple-100 rounded-2xl p-3.5 transition active:scale-[0.98]">
-              <div class="w-9 h-9 rounded-xl bg-purple-600 text-white font-extrabold text-sm flex items-center justify-center mb-2 shadow-sm">📄</div>
-              <p class="text-sm font-bold text-slate-800">Laporan PDF</p>
-              <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">Unduh PDF & kirim WA</p>
+            <!-- Kartu 4: Laporan PDF -->
+            <button type="button" id="tile-laporan" onclick="openModule('laporan')"
+              class="menu-tile text-left bg-gradient-to-br from-[#f5f3ff] via-[#ede9fe] to-[#e0e7ff] border border-white rounded-[22px] p-3.5 shadow-sm">
+              <div class="pointer-events-none absolute right-2 bottom-2 px-2 py-1 rounded bg-purple-600/10 text-purple-700/20 text-lg font-black">PDF</div>
+              <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center mb-3 shadow-md shadow-purple-500/25">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              </div>
+              <div class="flex items-end justify-between gap-1 relative z-10">
+                <div class="min-w-0">
+                  <p class="text-[13.5px] font-extrabold text-slate-800 truncate">Laporan PDF</p>
+                  <p class="text-[10.5px] text-slate-500 truncate mt-0.5">Unduh PDF & kirim WA</p>
+                </div>
+                <span class="w-6 h-6 rounded-full bg-white/90 text-purple-600 flex items-center justify-center text-xs font-extrabold shrink-0 shadow-2xs">›</span>
+              </div>
             </button>
 
-            <button type="button" id="menu-card-murid" onclick="switchTab('murid')" class="text-left bg-indigo-50/80 hover:bg-indigo-50 border border-indigo-100 rounded-2xl p-3.5 transition active:scale-[0.98]">
-              <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white font-extrabold text-sm flex items-center justify-center mb-2 shadow-sm">🎓</div>
-              <p id="menu-murid-title" class="text-sm font-bold text-slate-800">Data Murid</p>
-              <p id="menu-murid-sub" class="text-[11px] text-slate-500 mt-0.5 leading-snug">Nomor ID & profil anak</p>
+            <!-- Kartu 5: Data Murid -->
+            <button type="button" id="tile-murid" onclick="openModule('murid')"
+              class="menu-tile text-left bg-gradient-to-br from-[#eef2ff] via-[#e0e7ff] to-[#dbeafe] border border-white rounded-[22px] p-3.5 shadow-sm">
+              <div class="pointer-events-none absolute right-2 bottom-2 text-indigo-600/15 text-4xl font-black">👥</div>
+              <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-700 text-white flex items-center justify-center mb-3 shadow-md shadow-indigo-500/25">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </div>
+              <div class="flex items-end justify-between gap-1 relative z-10">
+                <div class="min-w-0">
+                  <p id="menu-murid-title" class="text-[13.5px] font-extrabold text-slate-800 truncate">Data Murid</p>
+                  <p id="menu-murid-sub" class="text-[10.5px] text-slate-500 truncate mt-0.5">Akun, ID & profil anak</p>
+                </div>
+                <span class="w-6 h-6 rounded-full bg-white/90 text-indigo-600 flex items-center justify-center text-xs font-extrabold shrink-0 shadow-2xs">›</span>
+              </div>
             </button>
 
-            <button type="button" id="menu-card-atur" onclick="switchTab('atur')" class="text-left bg-slate-100 hover:bg-slate-200/70 border border-slate-200 rounded-2xl p-3.5 transition active:scale-[0.98]">
-              <div class="w-9 h-9 rounded-xl bg-slate-700 text-white font-extrabold text-sm flex items-center justify-center mb-2 shadow-sm">⚙️</div>
-              <p class="text-sm font-bold text-slate-800">Pengaturan</p>
-              <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">Akun, Izin & Cloud</p>
+            <!-- Kartu 6: Pengaturan -->
+            <button type="button" id="tile-atur" onclick="openModule('atur')"
+              class="menu-tile text-left bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0] border border-white rounded-[22px] p-3.5 shadow-sm">
+              <div class="pointer-events-none absolute right-2 bottom-2 text-slate-600/15 text-4xl font-black">⚙️</div>
+              <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-800 text-white flex items-center justify-center mb-3 shadow-md shadow-slate-500/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </div>
+              <div class="flex items-end justify-between gap-1 relative z-10">
+                <div class="min-w-0">
+                  <p class="text-[13.5px] font-extrabold text-slate-800 truncate">Pengaturan</p>
+                  <p class="text-[10.5px] text-slate-500 truncate mt-0.5">Akun, Izin & Cloud</p>
+                </div>
+                <span class="w-6 h-6 rounded-full bg-white/90 text-slate-700 flex items-center justify-center text-xs font-extrabold shrink-0 shadow-2xs">›</span>
+              </div>
             </button>
           </div>
         </div>
 
-        <!-- Galeri Dokumentasi Kegiatan di Dashboard (Guru bisa unggah kapan saja) -->
-        <div id="dashboard-doc-section" class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
+        <!-- KARTU DOKUMENTASI KEGIATAN -->
+        <div class="glass-card rounded-[24px] p-4 border border-white shadow-sm space-y-3">
           <div class="flex items-center justify-between gap-2">
-            <div>
-              <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Dokumentasi Kegiatan</h3>
-              <p class="text-[10px] text-slate-400">Foto kegiatan belajar & mengaji terbaru</p>
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wide truncate">Dokumentasi Kegiatan</h3>
+                <p class="text-[10.5px] text-slate-500 truncate">File kegiatan belajar & momen lainnya</p>
+              </div>
             </div>
-            <button type="button" id="btn-add-doc-photo" onclick="openPhotoDocModal()"
-              class="hidden px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold rounded-xl shadow-sm shrink-0">
-              + Dokumentasi Foto
+            <button type="button" id="btn-add-doc" onclick="openDocModal()"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 active:scale-[0.98] text-white text-[11px] font-bold shadow-md shadow-rose-500/25 shrink-0 transition">
+              <span>📷</span> Dokumentasi Foto
             </button>
           </div>
-          <div id="dashboard-photo-gallery" class="grid grid-cols-2 gap-2.5"></div>
+
+          <div id="dashboard-doc-list" onscroll="updateDocCarouselDots()" class="flex gap-2.5 overflow-x-auto no-scrollbar pb-1 scroll-smooth"></div>
+
+          <div id="doc-dots-indicator" class="flex items-center justify-center gap-1.5 pt-0.5">
+            <span class="w-4 h-1.5 rounded-full bg-blue-600"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+          </div>
         </div>
 
-        <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+        <!-- AKTIVITAS TANGGAL INI -->
+        <div class="glass-card rounded-[24px] p-4 border border-white shadow-sm">
           <div class="flex items-center justify-between mb-2.5">
             <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Aktivitas Tanggal Ini</h3>
-            <span id="today-activity-count" class="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">0 Catatan</span>
+            <span id="today-activity-count" class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">0 Catatan</span>
           </div>
           <div id="today-activity-list" class="space-y-2 text-xs text-slate-500"></div>
         </div>
@@ -330,14 +459,14 @@
             <h2 class="text-base font-extrabold text-slate-800">Identitas & Data Murid</h2>
             <p class="text-xs text-slate-500">Format ID otomatis: SOL + Tahun + Bulan + Urut</p>
           </div>
-          <button type="button" id="btn-add-murid" onclick="openMuridModal()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm">
+          <button type="button" id="btn-add-murid" onclick="openMuridModal()" class="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-xs font-bold rounded-xl shadow-sm">
             + Tambah
           </button>
         </div>
 
         <div>
           <input type="text" id="search-murid" oninput="renderMuridList()" placeholder="Cari nama atau Nomor Murid (SOL2611001)..."
-            class="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs" />
         </div>
 
         <div id="murid-list-container" class="space-y-3"></div>
@@ -355,11 +484,11 @@
           </button>
         </div>
 
-        <div class="grid grid-cols-2 gap-2 bg-slate-200/70 p-1 rounded-xl">
-          <button type="button" id="subtab-hadir-mengaji" onclick="setHadirSession('mengaji')" class="py-2 text-xs font-bold rounded-lg bg-white text-emerald-700 shadow-sm transition">
+        <div class="grid grid-cols-2 gap-2 bg-white/80 p-1 rounded-2xl border border-slate-200/70">
+          <button type="button" id="subtab-hadir-mengaji" onclick="setHadirSession('mengaji')" class="py-2 text-xs font-extrabold rounded-xl bg-emerald-600 text-white shadow-sm transition">
             Sesi Mengaji
           </button>
-          <button type="button" id="subtab-hadir-les" onclick="setHadirSession('les')" class="py-2 text-xs font-bold rounded-lg text-slate-600 transition">
+          <button type="button" id="subtab-hadir-les" onclick="setHadirSession('les')" class="py-2 text-xs font-bold rounded-xl text-slate-600 transition">
             Sesi Les & Bimbel
           </button>
         </div>
@@ -374,7 +503,7 @@
             <h2 class="text-base font-extrabold text-slate-800">Catatan Mengaji</h2>
             <p class="text-xs text-slate-500">Progres Iqro, Al-Qur'an & kelancaran</p>
           </div>
-          <button type="button" id="btn-add-mengaji" onclick="openMengajiModal()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm">
+          <button type="button" id="btn-add-mengaji" onclick="openMengajiModal()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm">
             + Catat Mengaji
           </button>
         </div>
@@ -388,7 +517,7 @@
             <h2 class="text-base font-extrabold text-slate-800">Catatan Les & Bimbel</h2>
             <p class="text-xs text-slate-500">Mata pelajaran, topik & evaluasi nilai</p>
           </div>
-          <button type="button" id="btn-add-les" onclick="openLesModal()" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm">
+          <button type="button" id="btn-add-les" onclick="openLesModal()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm">
             + Catat Les
           </button>
         </div>
@@ -402,7 +531,7 @@
           <p class="text-xs text-slate-500">Unduh langsung file PDF (2 halaman terpisah) atau salin WA</p>
         </div>
 
-        <div class="bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+        <div class="glass-card p-4 rounded-2xl border border-white shadow-sm space-y-3">
           <div>
             <label class="block text-[11px] font-bold text-slate-600 mb-1">Pilih Murid</label>
             <select id="report-murid-select" onchange="renderReportPreview()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold"></select>
@@ -413,7 +542,7 @@
               <input type="month" id="report-month-input" onchange="renderReportPreview()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold" />
             </div>
             <div class="flex items-end">
-              <button type="button" id="btn-download-pdf" onclick="generateAndDownloadPDF()" class="w-full py-2 px-3 bg-rose-600 hover:bg-rose-700 active:scale-[0.99] text-white text-xs font-bold rounded-xl shadow-sm transition">
+              <button type="button" id="btn-download-pdf" onclick="generateAndDownloadPDF()" class="w-full py-2 px-3 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 active:scale-[0.99] text-white text-xs font-bold rounded-xl shadow-sm transition">
                 📥 Unduh PDF
               </button>
             </div>
@@ -424,41 +553,41 @@
           </button>
         </div>
 
-        <div id="report-preview-card" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3 text-xs"></div>
+        <div id="report-preview-card" class="glass-card p-4 rounded-2xl border border-white shadow-sm space-y-3 text-xs"></div>
       </section>
 
       <!-- TAB: PENGATURAN & MANAJEMEN AKUN -->
       <section id="view-atur" class="hidden space-y-4">
         <div>
           <h2 class="text-base font-extrabold text-slate-800">Pengaturan & Akun</h2>
-          <p class="text-xs text-slate-500">Izin pendaftaran, hak akses user & kredensial</p>
+          <p class="text-xs text-slate-500">Izin pendaftaran, hak akses user & sinkronisasi otomatis</p>
         </div>
 
-        <!-- Panel Persetujuan Pendaftar Baru (EKSKLUSIF SUPER ADMIN) -->
-        <div id="pending-approval-panel" class="hidden bg-white p-4 rounded-2xl border border-amber-300 shadow-sm space-y-3">
-          <div class="flex items-center justify-between gap-2">
-            <div>
-              <h3 class="text-xs font-extrabold text-amber-950 uppercase tracking-wider">Izin Pendaftaran User Baru</h3>
-              <p class="text-[11px] text-slate-500">Atur checklist hak akses modul sebelum menyetujui</p>
-            </div>
-            <span id="atur-pending-count" class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-extrabold">0</span>
-          </div>
-          <div id="pending-account-list" class="space-y-2.5"></div>
-        </div>
-
-        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2">
+        <div class="glass-card p-4 rounded-2xl border border-white shadow-sm space-y-2">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-700">Status & Nomor Induk</span>
-            <span id="settings-role-pill" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">USER</span>
+            <span class="text-xs font-bold text-slate-700">Status Hak Akses</span>
+            <span id="settings-role-pill" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">ADMIN</span>
           </div>
           <p id="settings-account-desc" class="text-xs text-slate-500 leading-relaxed"></p>
         </div>
 
-        <!-- Ubah Username & PIN Sendiri (Semua Role) -->
-        <div class="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm space-y-3">
+        <!-- PANEL PERSETUJUAN PENDAFTAR BARU (KHUSUS SUPER ADMIN) -->
+        <div id="admin-approval-panel" class="hidden bg-white p-4 rounded-2xl border-2 border-amber-300 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xs font-extrabold text-amber-900 uppercase tracking-wider">Permintaan Pendaftaran User Baru</h3>
+              <p class="text-[11px] text-slate-500">Atur checklist izin modul sebelum menyetujui</p>
+            </div>
+            <span id="pending-badge-count" class="px-2.5 py-0.5 rounded-full bg-amber-500 text-white text-[11px] font-extrabold">0</span>
+          </div>
+          <div id="pending-users-container" class="space-y-3"></div>
+        </div>
+
+        <!-- UBAH USERNAME & PIN SENDIRI (SEMUA USER) -->
+        <div class="glass-card p-4 rounded-2xl border border-white shadow-sm space-y-3">
           <div>
             <h3 class="text-xs font-extrabold text-blue-900 uppercase tracking-wider">Ubah Username & PIN Saya</h3>
-            <p class="text-[11px] text-slate-500">Perubahan otomatis tersimpan ke database cloud</p>
+            <p class="text-[11px] text-slate-500">Nomor Induk: <b id="self-acc-code">-</b></p>
           </div>
           <div class="space-y-2.5">
             <div>
@@ -484,40 +613,41 @@
           </div>
         </div>
 
-        <!-- Panel Kontrol Semua Akun User (EKSKLUSIF SUPER ADMIN) -->
-        <div id="superadmin-account-panel" class="hidden bg-white p-4 rounded-2xl border border-indigo-200 shadow-sm space-y-3">
+        <!-- PANEL KONTROL SEMUA AKUN USER (KHUSUS SUPER ADMIN) -->
+        <div id="superadmin-account-panel" class="hidden glass-card p-4 rounded-2xl border border-indigo-200 shadow-sm space-y-3">
           <div class="flex items-center justify-between gap-2">
             <div>
-              <h3 class="text-xs font-extrabold text-indigo-900 uppercase tracking-wider">Kontrol Semua User & Hak Akses</h3>
-              <p class="text-[11px] text-slate-500">Lihat No Induk, ubah PIN & atur checklist izin tiap user</p>
+              <h3 class="text-xs font-extrabold text-indigo-900 uppercase tracking-wider">Kontrol Semua Akun User (Admin)</h3>
+              <p class="text-[11px] text-slate-500">Lihat Nomor Induk, ubah kredensial & checklist izin akses</p>
             </div>
-            <button type="button" onclick="openAccountModal()" class="px-2.5 py-1.5 bg-indigo-600 text-white text-[11px] font-bold rounded-lg shrink-0">
+            <button type="button" onclick="openAccountModal()" class="px-2.5 py-1.5 bg-indigo-600 text-white text-[11px] font-bold rounded-xl shrink-0">
               + User
             </button>
           </div>
           <div id="account-list-container" class="space-y-2"></div>
         </div>
 
-        <!-- Status Cloud Firebase (Tertanam Permanen & Otomatis) -->
-        <div class="bg-white p-4 rounded-2xl border border-emerald-100 shadow-sm space-y-1.5">
+        <!-- STATUS FIREBASE REALTIME DATABASE (TERTANAM OTOMATIS) -->
+        <div class="glass-card p-4 rounded-2xl border border-white shadow-sm space-y-2">
           <div class="flex items-center justify-between">
-            <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Database Cloud Firebase</h3>
-            <span id="sync-status-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Auto-Sync Aktif</span>
+            <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Firebase Realtime Database</h3>
+            <span id="sync-status-badge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Auto-Sync Aktif</span>
           </div>
-          <p class="text-[11px] text-slate-500">Terhubung otomatis ke <span class="font-semibold text-slate-700">taman-belajar-db</span> tanpa pengaturan manual.</p>
+          <p class="text-[11px] text-slate-500 break-all">Endpoint: <b>taman-belajar-db-default-rtdb.asia-southeast1.firebasedatabase.app</b></p>
+          <p class="text-[10.5px] text-emerald-700 font-semibold">✓ Setiap perubahan data otomatis tersimpan & tersinkron ke cloud tanpa sinkronisasi manual.</p>
         </div>
 
-        <!-- Backup JSON (EKSKLUSIF SUPER ADMIN) -->
-        <div id="backup-panel" class="hidden bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+        <!-- BACKUP DATA JSON (HANYA SUPER ADMIN) -->
+        <div id="backup-panel" class="hidden glass-card p-4 rounded-2xl border border-white shadow-sm space-y-3">
           <div>
-            <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Cadangan Data (Khusus Admin)</h3>
-            <p class="text-[11px] text-slate-500">Ekspor atau pulihkan seluruh database aplikasi</p>
+            <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Cadangan Database (Khusus Admin)</h3>
+            <p class="text-[11px] text-slate-500">Ekspor atau pulihkan seluruh data sekolah dalam file JSON</p>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <button type="button" onclick="exportBackupJSON()" class="py-2.5 px-3 bg-slate-800 text-white text-xs font-bold rounded-xl">
               Ekspor JSON
             </button>
-            <label class="py-2.5 px-3 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl text-center cursor-pointer">
+            <label class="py-2.5 px-3 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl text-center cursor-pointer border border-slate-200">
               Impor JSON
               <input type="file" accept=".json" onchange="importBackupJSON(event)" class="hidden" />
             </label>
@@ -527,33 +657,87 @@
 
     </main>
 
-    <!-- ==================== 4. FIXED BOTTOM NAVIGATION ==================== -->
-    <nav id="bottom-nav" class="shrink-0 bg-white border-t border-slate-200 px-2 py-1.5 grid grid-cols-5 gap-1 z-20">
-      <button type="button" onclick="switchTab('beranda')" data-nav="beranda" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-blue-600 bg-blue-50/80 font-bold">
-        <span class="text-xs">🏠</span>
+    <!-- ==================== 4. FLOATING BOTTOM NAVIGATION (TOMBOL TENGAH MENONJOL) ==================== -->
+    <nav class="shrink-0 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 pt-1.5 pb-2 grid grid-cols-5 items-end gap-1 z-30 shadow-[0_-4px_20px_rgba(15,23,42,0.06)]">
+      <button type="button" onclick="switchTab('beranda')" data-nav="beranda" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-blue-600 font-extrabold">
+        <span class="text-base leading-none mb-0.5">🏠</span>
         <span class="text-[10px]">Beranda</span>
+        <span class="nav-dot w-4 h-0.5 rounded-full bg-blue-600 mt-0.5"></span>
       </button>
-      <button type="button" onclick="switchTab('murid')" data-nav="murid" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-medium">
-        <span class="text-xs">👥</span>
+
+      <button type="button" onclick="openModule('murid')" data-nav="murid" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-semibold">
+        <span class="text-base leading-none mb-0.5">👥</span>
         <span class="text-[10px]">Murid</span>
+        <span class="nav-dot hidden w-4 h-0.5 rounded-full bg-blue-600 mt-0.5"></span>
       </button>
-      <button type="button" onclick="switchTab('hadir')" data-nav="hadir" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-medium">
-        <span class="text-xs">✅</span>
-        <span class="text-[10px]">Hadir</span>
+
+      <!-- Tombol Tengah Hadir Menonjol -->
+      <button type="button" onclick="openModule('hadir')" data-nav="hadir" class="nav-btn flex flex-col items-center justify-center -mt-6 relative z-10">
+        <div id="center-hadir-circle" class="w-[52px] h-[52px] rounded-full bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center shadow-lg shadow-blue-600/35 border-4 border-white transition transform active:scale-95">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <span id="center-hadir-label" class="text-[10px] font-bold text-slate-500 mt-0.5">Hadir</span>
       </button>
-      <button type="button" onclick="switchTab('laporan')" data-nav="laporan" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-medium">
-        <span class="text-xs">📊</span>
+
+      <button type="button" onclick="openModule('laporan')" data-nav="laporan" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-semibold">
+        <span class="text-base leading-none mb-0.5">📊</span>
         <span class="text-[10px]">Laporan</span>
+        <span class="nav-dot hidden w-4 h-0.5 rounded-full bg-blue-600 mt-0.5"></span>
       </button>
-      <button type="button" onclick="switchTab('atur')" data-nav="atur" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-medium">
-        <span class="text-xs">⚙️</span>
-        <span class="text-[10px]">Atur</span>
+
+      <button type="button" onclick="switchTab('atur')" data-nav="atur" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-semibold">
+        <span class="text-base leading-none mb-0.5">⚙️</span>
+        <span class="text-[10px]">Akun</span>
+        <span class="nav-dot hidden w-4 h-0.5 rounded-full bg-blue-600 mt-0.5"></span>
       </button>
     </nav>
 
   </div>
 
-  <!-- ==================== MODALS INPUT DATA (NON-FORM) ==================== -->
+  <!-- ==================== MODALS INPUT DATA ==================== -->
+  <!-- Modal Dokumentasi Foto Kegiatan -->
+  <div id="modal-doc" class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-end sm:items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-extrabold text-slate-800">Tambah Dokumentasi Kegiatan</h3>
+        <button type="button" onclick="closeModal('modal-doc')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-xs font-bold text-slate-600">Tutup</button>
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 mb-1">Pilih / Ambil Foto Kegiatan *</label>
+        <input type="file" id="doc-photo-input" accept="image/*" onchange="previewDocPhoto(event)"
+          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+        <img id="doc-photo-preview" class="hidden mt-2 w-full h-40 object-cover rounded-2xl border border-slate-200" alt="Pratinjau Foto" />
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 mb-1">Keterangan Singkat *</label>
+        <input type="text" id="doc-caption" placeholder="Contoh: Setoran hafalan Juz 30 & latihan berhitung..."
+          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+      </div>
+      <div class="flex items-center justify-between text-[11px] text-slate-500 bg-slate-50 px-3 py-2 rounded-xl">
+        <span>Tanggal Otomatis:</span>
+        <b id="doc-auto-date-label" class="text-slate-800">-</b>
+      </div>
+      <button type="button" onclick="saveDocForm()" class="w-full py-2.5 bg-gradient-to-r from-rose-500 to-pink-600 text-white text-xs font-bold rounded-xl shadow-md">
+        Simpan & Tampilkan di Dashboard
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal Lihat Foto Fullscreen -->
+  <div id="modal-doc-view" class="hidden fixed inset-0 z-50 bg-slate-950/85 flex items-center justify-center p-4" onclick="closeModal('modal-doc-view')">
+    <div class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+      <img id="doc-view-img" class="w-full max-h-[65vh] object-contain bg-slate-900" alt="Dokumentasi" />
+      <div class="p-4 space-y-1.5">
+        <div class="flex items-center justify-between text-[11px] text-slate-500">
+          <span id="doc-view-meta" class="font-bold text-blue-600">-</span>
+          <button type="button" onclick="closeModal('modal-doc-view')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold">Tutup</button>
+        </div>
+        <p id="doc-view-caption" class="text-xs font-bold text-slate-800"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Data Murid -->
   <div id="modal-murid" class="hidden fixed inset-0 z-50 bg-slate-900/50 flex items-end sm:items-center justify-center p-4">
     <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 shadow-2xl">
       <div class="flex items-center justify-between">
@@ -599,6 +783,7 @@
     </div>
   </div>
 
+  <!-- Modal Mengaji -->
   <div id="modal-mengaji" class="hidden fixed inset-0 z-50 bg-slate-900/50 flex items-end sm:items-center justify-center p-4">
     <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 shadow-2xl">
       <div class="flex items-center justify-between">
@@ -645,6 +830,7 @@
     </div>
   </div>
 
+  <!-- Modal Les -->
   <div id="modal-les" class="hidden fixed inset-0 z-50 bg-slate-900/50 flex items-end sm:items-center justify-center p-4">
     <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 shadow-2xl">
       <div class="flex items-center justify-between">
@@ -680,69 +866,31 @@
     </div>
   </div>
 
-  <!-- MODAL PERSETUJUAN PENDAFTARAN USER BARU + CHECKLIST HAK AKSES (EKSKLUSIF ADMIN) -->
-  <div id="modal-approve-pending" class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-end sm:items-center justify-center p-4">
-    <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 shadow-2xl max-h-[90vh] overflow-y-auto">
+  <!-- Modal Tambah / Edit Akun User & Checklist Izin Modul (Admin) -->
+  <div id="modal-account" class="hidden fixed inset-0 z-50 bg-slate-900/50 flex items-end sm:items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 shadow-2xl my-auto">
       <div class="flex items-center justify-between">
-        <div>
-          <h3 class="text-base font-extrabold text-slate-800">Izin Pendaftaran & Hak Akses</h3>
-          <p class="text-[11px] text-slate-500">Centang fitur yang boleh diakses oleh User ini</p>
-        </div>
-        <button type="button" onclick="closeModal('modal-approve-pending')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-xs font-bold text-slate-600">Tutup</button>
-      </div>
-
-      <input type="hidden" id="approve-pending-id" />
-
-      <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-1 text-xs">
-        <div class="flex items-center justify-between">
-          <span class="font-extrabold text-slate-800" id="approve-user-name">-</span>
-          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 uppercase" id="approve-user-role">-</span>
-        </div>
-        <p class="text-[11px] text-slate-600">Username: <b id="approve-user-username">-</b> • PIN: <b id="approve-user-pin">-</b></p>
-        <p class="text-[11px] text-emerald-700 font-bold" id="approve-auto-code-info">Nomor Induk Otomatis: -</p>
-      </div>
-
-      <div class="space-y-2">
-        <p class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Checklist Hak Akses User:</p>
-        <div id="approve-permissions-checklist" class="grid grid-cols-1 gap-1.5 bg-indigo-50/50 p-3 rounded-2xl border border-indigo-100 text-xs"></div>
-      </div>
-
-      <div class="flex gap-2 pt-1">
-        <button type="button" onclick="confirmApprovePending()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md">
-          ✓ Setujui & Aktifkan User
-        </button>
-        <button type="button" onclick="rejectPendingFromModal()" class="px-3.5 py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold rounded-xl">
-          Tolak
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL KELOLA / EDIT AKUN USER + CHECKLIST HAK AKSES (EKSKLUSIF ADMIN) -->
-  <div id="modal-account" class="hidden fixed inset-0 z-50 bg-slate-900/50 flex items-end sm:items-center justify-center p-4">
-    <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between">
-        <h3 id="modal-account-title" class="text-base font-extrabold text-slate-800">Tambah Akun User</h3>
+        <h3 id="modal-account-title" class="text-base font-extrabold text-slate-800">Kelola Akun User</h3>
         <button type="button" onclick="closeModal('modal-account')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-xs font-bold text-slate-600">Tutup</button>
       </div>
       <input type="hidden" id="acc-edit-id" />
-      <div class="grid grid-cols-2 gap-2.5">
+      <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1">Kategori User *</label>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">Jenis User *</label>
           <select id="acc-role" onchange="onAccRoleChange()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold">
-            <option value="guru">Guru Pengajar (User)</option>
-            <option value="wali">Orang Tua / Wali Murid (User)</option>
-            <option value="superadmin">Super Admin</option>
+            <option value="guru">User (Guru)</option>
+            <option value="wali">User (Orang Tua)</option>
+            <option value="superadmin">Admin</option>
           </select>
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1">Nomor Induk Otomatis</label>
-          <input type="text" id="acc-induk-code" readonly class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs font-extrabold text-indigo-700" />
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">Nomor Induk</label>
+          <input type="text" id="acc-user-code" placeholder="Otomatis" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold uppercase" />
         </div>
       </div>
       <div id="acc-murid-wrapper" class="hidden">
-        <label class="block text-[11px] font-bold text-slate-600 mb-1">Tautkan ke Nomor Induk Murid *</label>
-        <select id="acc-murid-code" onchange="document.getElementById('acc-induk-code').value = this.value" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold"></select>
+        <label class="block text-[11px] font-bold text-slate-600 mb-1">Tautkan ke Anak (Murid) *</label>
+        <select id="acc-murid-code" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold"></select>
       </div>
       <div>
         <label class="block text-[11px] font-bold text-slate-600 mb-1">Nama Tampilan *</label>
@@ -759,9 +907,17 @@
         </div>
       </div>
 
-      <div id="acc-permissions-section" class="space-y-1.5">
-        <p class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Checklist Hak Akses Modul User:</p>
-        <div id="acc-permissions-checklist" class="grid grid-cols-1 gap-1.5 bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs"></div>
+      <!-- Checklist Izin Akses Modul -->
+      <div id="acc-permissions-box" class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+        <p class="text-[11px] font-extrabold text-slate-700 uppercase">Checklist Izin Akses Modul:</p>
+        <div class="grid grid-cols-2 gap-1.5 text-xs">
+          <label class="flex items-center gap-2 font-semibold text-slate-700"><input type="checkbox" id="perm-les" checked class="rounded text-blue-600" /> Les & Bimbel</label>
+          <label class="flex items-center gap-2 font-semibold text-slate-700"><input type="checkbox" id="perm-mengaji" checked class="rounded text-blue-600" /> Mengaji</label>
+          <label class="flex items-center gap-2 font-semibold text-slate-700"><input type="checkbox" id="perm-hadir" checked class="rounded text-blue-600" /> Kehadiran</label>
+          <label class="flex items-center gap-2 font-semibold text-slate-700"><input type="checkbox" id="perm-laporan" checked class="rounded text-blue-600" /> Laporan PDF</label>
+          <label class="flex items-center gap-2 font-semibold text-slate-700"><input type="checkbox" id="perm-murid" checked class="rounded text-blue-600" /> Data Murid</label>
+          <label class="flex items-center gap-2 font-semibold text-slate-700"><input type="checkbox" id="perm-dokumentasi" checked class="rounded text-blue-600" /> Dokumentasi Foto</label>
+        </div>
       </div>
 
       <button type="button" onclick="saveAccountForm()" class="w-full py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-md">
@@ -770,182 +926,155 @@
     </div>
   </div>
 
-  <!-- MODAL UPLOAD DOKUMENTASI FOTO (GURU & ADMIN KAPAN SAJA) -->
-  <div id="modal-photo-doc" class="hidden fixed inset-0 z-50 bg-slate-900/50 flex items-end sm:items-center justify-center p-4">
-    <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 shadow-2xl">
-      <div class="flex items-center justify-between">
-        <h3 class="text-base font-extrabold text-slate-800">Dokumentasi Foto Kegiatan</h3>
-        <button type="button" onclick="closeModal('modal-photo-doc')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-xs font-bold text-slate-600">Tutup</button>
-      </div>
-      <div>
-        <label class="block text-[11px] font-bold text-slate-600 mb-1">Ambil / Pilih Foto Kegiatan *</label>
-        <input type="file" id="doc-photo-file" accept="image/*" onchange="previewDocPhoto(event)"
-          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
-        <img id="doc-photo-preview" alt="Pratinjau Foto" class="hidden mt-2 w-full h-40 object-cover rounded-2xl border border-slate-200" />
-      </div>
-      <div>
-        <label class="block text-[11px] font-bold text-slate-600 mb-1">Keterangan Singkat *</label>
-        <input type="text" id="doc-photo-caption" placeholder="Contoh: Setoran hafalan Juz 30 & latihan berhitung"
-          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
-      </div>
-      <div class="flex items-center justify-between text-[11px] text-slate-500 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100">
-        <span>Tanggal & Waktu Otomatis:</span>
-        <span id="doc-photo-auto-date" class="font-bold text-slate-700">-</span>
-      </div>
-      <button type="button" id="btn-save-photo-doc" onclick="savePhotoDoc()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md">
-        Simpan & Tampilkan di Dashboard
-      </button>
-    </div>
-  </div>
-
-  <!-- MODAL LIHAT FOTO PENUH -->
-  <div id="modal-photo-viewer" onclick="closeModal('modal-photo-viewer')" class="hidden fixed inset-0 z-50 bg-slate-950/85 flex items-center justify-center p-4">
-    <div onclick="event.stopPropagation()" class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl">
-      <img id="viewer-photo-img" alt="Dokumentasi" class="w-full max-h-[65vh] object-contain bg-slate-900" />
-      <div class="p-4 space-y-1.5">
-        <div class="flex items-center justify-between gap-2">
-          <span id="viewer-photo-date" class="text-[11px] font-bold text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-full"></span>
-          <span id="viewer-photo-author" class="text-[11px] text-slate-400"></span>
-        </div>
-        <p id="viewer-photo-caption" class="text-xs font-bold text-slate-800 leading-relaxed"></p>
-        <div class="pt-2 flex justify-end gap-2">
-          <button type="button" id="btn-delete-photo-doc" class="hidden px-3 py-1.5 rounded-xl bg-rose-100 text-rose-700 text-xs font-bold">Hapus Foto</button>
-          <button type="button" onclick="closeModal('modal-photo-viewer')" class="px-4 py-1.5 rounded-xl bg-slate-800 text-white text-xs font-bold">Tutup</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script>
-    // ==================== KONFIGURASI DATABASE & HAK AKSES ====================
-    const STORAGE_KEY = 'taman_belajar_v7_db';
-    const LEGACY_KEYS = ['taman_belajar_v6_signup', 'taman_belajar_v5_clean', 'taman_belajar_v4_db', 'taman_belajar_v3_db'];
-    const SESSION_KEY = 'taman_belajar_v7_session';
-    const FIREBASE_DB_URL = 'https://taman-belajar-db-default-rtdb.asia-southeast1.firebasedatabase.app';
+    // ==================== KONFIGURASI & FIREBASE PERMANEN ====================
+    const FIREBASE_DB_URL = 'https://taman-belajar-db-default-rtdb.asia-southeast1.firebasedatabase.app/taman_belajar_db.json';
+    const STORAGE_KEY = 'taman_belajar_v6_modern';
+    const LEGACY_KEYS = ['taman_belajar_v5_clean', 'taman_belajar_v4_db', 'taman_belajar_v3_db'];
+    const SESSION_KEY = 'taman_belajar_v6_session';
 
-    const PERMISSION_ITEMS = [
-      { key: 'beranda', label: 'Beranda & Galeri Dokumentasi' },
-      { key: 'murid', label: 'Data Murid' },
-      { key: 'hadir', label: 'Kehadiran (Absensi)' },
-      { key: 'mengaji', label: 'Mengaji' },
-      { key: 'les', label: 'Les & Bimbel' },
-      { key: 'laporan', label: 'Laporan PDF & WhatsApp' },
-      { key: 'canWrite', label: 'Izin Input / Catat Data Baru' },
-      { key: 'canUploadPhoto', label: 'Izin Upload Dokumentasi Foto' }
-    ];
+    const DEFAULT_PERMS_GURU = { les: true, mengaji: true, hadir: true, laporan: true, murid: true, dokumentasi: true };
+    const DEFAULT_PERMS_WALI = { les: true, mengaji: true, hadir: true, laporan: true, murid: true, dokumentasi: false };
 
-    function getDefaultPermissions(role) {
-      if (role === 'superadmin') {
-        return { beranda: true, murid: true, hadir: true, mengaji: true, les: true, laporan: true, canWrite: true, canUploadPhoto: true };
-      }
-      if (role === 'guru') {
-        return { beranda: true, murid: true, hadir: true, mengaji: true, les: true, laporan: true, canWrite: true, canUploadPhoto: true };
-      }
-      // Default untuk Orang Tua / Wali Murid
-      return { beranda: true, murid: true, hadir: true, mengaji: true, les: true, laporan: true, canWrite: false, canUploadPhoto: false };
-    }
+    // Foto SVG sample untuk dokumentasi awal agar tampilan dashboard langsung menarik
+    const SAMPLE_DOC_SVG = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240">' +
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#10b981"/></linearGradient></defs>' +
+      '<rect width="400" height="240" fill="url(#g)"/>' +
+      '<circle cx="330" cy="50" r="60" fill="rgba(255,255,255,0.15)"/>' +
+      '<text x="200" y="108" font-family="sans-serif" font-size="40" text-anchor="middle" fill="#ffffff">📖</text>' +
+      '<text x="200" y="146" font-family="sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#ffffff">Kegiatan Belajar &amp; Mengaji</text>' +
+      '<text x="200" y="170" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#e0f2fe">Taman Belajar • Dokumentasi Harian</text>' +
+      '</svg>'
+    );
 
     const DEFAULT_DATA = {
       accounts: [
         {
           id: 'acc-1',
+          userCode: 'ADM2611001',
           username: 'superadmin',
           pin: '1234',
           name: 'Super Admin',
           role: 'superadmin',
-          indukCode: 'ADM2611001',
+          status: 'approved',
           muridCode: null,
-          permissions: getDefaultPermissions('superadmin')
-        },
-        {
-          id: 'acc-3',
-          username: 'wali_aisyah',
-          pin: '1234',
-          name: 'Wali Ananda Aisyah',
-          role: 'wali',
-          indukCode: 'SOL2611001',
-          muridCode: 'SOL2611001',
-          permissions: getDefaultPermissions('wali')
+          permissions: { les: true, mengaji: true, hadir: true, laporan: true, murid: true, dokumentasi: true }
         }
       ],
-      pendingAccounts: [],
-      photos: [],
       murid: [
         { id: 'm-1', code: 'SOL2611001', pin: '1234', name: 'Aisyah Putri Rahma', program: 'Keduanya', kelas: 'SD Kelas 2', wali: 'Bapak Ahmad', regMonth: '2026-11' },
         { id: 'm-2', code: 'SOL2611002', pin: '1234', name: 'Muhammad Rizky Pratama', program: 'Mengaji', kelas: 'SD Kelas 1', wali: 'Ibu Siti', regMonth: '2026-11' },
-        { id: 'm-3', code: 'SOL2611003', pin: '1234', name: 'Zahra Nabila Khairunnisa', program: 'Keduanya', kelas: 'SD Kelas 3', wali: 'Bapak Hendra', regMonth: '2026-11' }
+        { id: 'm-3', code: 'SOL2611003', pin: '1234', name: 'Zahra Nabila Khairunnisa', program: 'Keduanya', kelas: 'SD Kelas 3', wali: 'Bapak Hendra', regMonth: '2026-11' },
+        { id: 'm-4', code: 'SOL2611004', pin: '1234', name: 'Fathan Alfarizi', program: 'Mengaji', kelas: 'TK B', wali: 'Ibu Rina', regMonth: '2026-11' }
       ],
       attendance: {
-        '2026-11-22': { mengaji: ['m-1', 'm-2', 'm-3'], les: ['m-1', 'm-3'] }
+        '2026-11-22': { mengaji: ['m-1', 'm-2', 'm-3', 'm-4'], les: ['m-1', 'm-3', 'm-4'] }
       },
       mengaji: [
-        { id: 'mg-1', date: '2026-11-22', muridId: 'm-1', jilid: 'Iqro 4', halaman: 'Hal. 12 - 14', nilai: 'Sangat Lancar (A)', skor: 92, catatan: 'Panjang pendek mad sudah tepat.', author: 'Pengajar' },
-        { id: 'mg-2', date: '2026-11-22', muridId: 'm-2', jilid: 'Iqro 2', halaman: 'Hal. 8 - 9', nilai: 'Lancar (B)', skor: 85, catatan: 'Perhatikan huruf sambung.', author: 'Pengajar' }
+        { id: 'mg-1', date: '2026-11-22', muridId: 'm-1', jilid: 'Iqro 4', halaman: 'Hal. 12 - 14', nilai: 'Sangat Lancar (A)', skor: 92, catatan: 'Panjang pendek mad sudah tepat.', author: 'Super Admin' },
+        { id: 'mg-2', date: '2026-11-22', muridId: 'm-2', jilid: 'Iqro 2', halaman: 'Hal. 8 - 9', nilai: 'Lancar (B)', skor: 85, catatan: 'Perhatikan huruf sambung.', author: 'Super Admin' }
       ],
       les: [
-        { id: 'ls-1', date: '2026-11-22', muridId: 'm-1', mapel: 'Matematika', materi: 'Penjumlahan & Pengurangan Bersusun', nilai: 95, catatan: 'Sangat teliti mengerjakan latihan.', author: 'Pengajar' },
-        { id: 'ls-2', date: '2026-11-22', muridId: 'm-3', mapel: 'Bahasa Indonesia', materi: 'Membaca Pemahaman & Kalimat Utama', nilai: 88, catatan: 'Membaca lancar dan percaya diri.', author: 'Pengajar' }
+        { id: 'ls-1', date: '2026-11-22', muridId: 'm-1', mapel: 'Matematika', materi: 'Penjumlahan & Pengurangan Bersusun', nilai: 95, catatan: 'Sangat teliti mengerjakan latihan.', author: 'Super Admin' },
+        { id: 'ls-2', date: '2026-11-22', muridId: 'm-3', mapel: 'Bahasa Indonesia', materi: 'Membaca Pemahaman & Kalimat Utama', nilai: 88, catatan: 'Membaca lancar dan percaya diri.', author: 'Super Admin' }
+      ],
+      docs: [
+        {
+          id: 'doc-default-1',
+          photo: SAMPLE_DOC_SVG,
+          caption: 'Sesi Mengaji Iqro & Hafalan Surat Pendek',
+          date: '2026-11-22',
+          time: '16:30',
+          author: 'Super Admin'
+        }
       ]
     };
 
     let memoryFallbackDB = JSON.parse(JSON.stringify(DEFAULT_DATA));
     let memoryFallbackSession = null;
+    let isSyncing = false;
+    let pendingPhotoBase64 = '';
+    let toastTimer = null;
 
-    function safeGetStorage(key) {
-      try { return window.localStorage ? window.localStorage.getItem(key) : null; } catch (e) { return null; }
-    }
-    function safeSetStorage(key, val) {
-      try { if (window.localStorage) window.localStorage.setItem(key, val); } catch (e) {}
-    }
-    function safeGetSession(key) {
-      try { return window.sessionStorage ? window.sessionStorage.getItem(key) : memoryFallbackSession; } catch (e) { return memoryFallbackSession; }
-    }
-    function safeSetSession(key, val) {
-      memoryFallbackSession = val;
-      try { if (window.sessionStorage) window.sessionStorage.setItem(key, val); } catch (e) {}
-    }
-    function safeRemoveSession(key) {
-      memoryFallbackSession = null;
-      try { if (window.sessionStorage) window.sessionStorage.removeItem(key); } catch (e) {}
+    // ==================== NOTIFIKASI UI & KONFIRMASI TANPA ALERT()/CONFIRM() ====================
+    function showToast(msg, type = 'info') {
+      const box = document.getElementById('toast-box');
+      const textEl = document.getElementById('toast-message');
+      if (!box || !textEl) return;
+      textEl.textContent = msg;
+      const styles = {
+        success: 'bg-emerald-600 text-white border-emerald-500',
+        error: 'bg-rose-600 text-white border-rose-500',
+        warning: 'bg-amber-500 text-slate-950 border-amber-400',
+        info: 'bg-slate-800 text-white border-slate-700'
+      };
+      box.className = `fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-sm rounded-2xl px-4 py-3 shadow-xl border text-xs font-bold flex items-center justify-between gap-3 transition-all ${styles[type] || styles.info}`;
+      box.classList.remove('hidden');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => hideToast(), 3800);
     }
 
-    function normalizeAccount(acc) {
-      const defaults = getDefaultPermissions(acc.role);
-      return {
-        ...acc,
-        indukCode: acc.indukCode || acc.muridCode || (acc.role === 'superadmin' ? 'ADM2611001' : ''),
-        permissions: { ...defaults, ...(acc.permissions || {}) }
+    function hideToast() {
+      const box = document.getElementById('toast-box');
+      if (box) box.classList.add('hidden');
+    }
+
+    function showConfirmDialog(msg, onConfirm) {
+      const modal = document.getElementById('confirm-modal');
+      const msgEl = document.getElementById('confirm-message');
+      const okBtn = document.getElementById('confirm-ok-btn');
+      const cancelBtn = document.getElementById('confirm-cancel-btn');
+      msgEl.textContent = msg;
+      modal.classList.remove('hidden');
+
+      const cleanup = () => {
+        modal.classList.add('hidden');
+        okBtn.onclick = null;
+        cancelBtn.onclick = null;
+      };
+      cancelBtn.onclick = cleanup;
+      okBtn.onclick = () => {
+        cleanup();
+        if (typeof onConfirm === 'function') onConfirm();
       };
     }
 
+    function safeGetStorage(key) { try { return window.localStorage ? window.localStorage.getItem(key) : null; } catch (e) { return null; } }
+    function safeSetStorage(key, val) { try { if (window.localStorage) window.localStorage.setItem(key, val); } catch (e) {} }
+    function safeGetSession(key) { try { return window.sessionStorage ? window.sessionStorage.getItem(key) : memoryFallbackSession; } catch (e) { return memoryFallbackSession; } }
+    function safeSetSession(key, val) { memoryFallbackSession = val; try { if (window.sessionStorage) window.sessionStorage.setItem(key, val); } catch (e) {} }
+    function safeRemoveSession(key) { memoryFallbackSession = null; try { if (window.sessionStorage) window.sessionStorage.removeItem(key); } catch (e) {} }
+
     function normalizeDB(parsed) {
-      let accList = Array.isArray(parsed.accounts) && parsed.accounts.length
-        ? parsed.accounts.map(normalizeAccount)
-        : JSON.parse(JSON.stringify(DEFAULT_DATA.accounts));
+      const rawAccounts = Array.isArray(parsed.accounts) ? parsed.accounts : [];
+      // Pastikan akun lama 'khasanah' selalu dibersihkan
+      const cleanedAccounts = rawAccounts
+        .filter(a => (a.username || '').toLowerCase() !== 'khasanah')
+        .map(a => ({
+          ...a,
+          status: a.status || 'approved',
+          userCode: a.userCode || (a.role === 'superadmin' ? 'ADM2611001' : (a.muridCode || 'USR2611001')),
+          permissions: a.permissions || (a.role === 'wali' ? { ...DEFAULT_PERMS_WALI } : { ...DEFAULT_PERMS_GURU })
+        }));
 
-      // Pastikan akun bawaan 'khasanah' dihapus jika terbawa dari migrasi lama
-      accList = accList.filter(a => (a.username || '').toLowerCase() !== 'khasanah');
-
-      if (!accList.some(a => a.role === 'superadmin')) {
-        accList.unshift(DEFAULT_DATA.accounts[0]);
+      if (!cleanedAccounts.some(a => a.role === 'superadmin')) {
+        cleanedAccounts.unshift(JSON.parse(JSON.stringify(DEFAULT_DATA.accounts[0])));
       }
 
       return {
-        accounts: accList,
-        pendingAccounts: Array.isArray(parsed.pendingAccounts) ? parsed.pendingAccounts : [],
-        photos: Array.isArray(parsed.photos) ? parsed.photos : [],
+        accounts: cleanedAccounts,
         murid: Array.isArray(parsed.murid) ? parsed.murid : JSON.parse(JSON.stringify(DEFAULT_DATA.murid)),
         attendance: parsed.attendance && typeof parsed.attendance === 'object' ? parsed.attendance : {},
         mengaji: Array.isArray(parsed.mengaji) ? parsed.mengaji : [],
-        les: Array.isArray(parsed.les) ? parsed.les : []
+        les: Array.isArray(parsed.les) ? parsed.les : [],
+        docs: Array.isArray(parsed.docs) && parsed.docs.length > 0 ? parsed.docs : JSON.parse(JSON.stringify(DEFAULT_DATA.docs))
       };
     }
 
     function loadDB() {
       const raw = safeGetStorage(STORAGE_KEY);
-      if (raw) {
-        try { return normalizeDB(JSON.parse(raw)); } catch (e) {}
-      }
+      if (raw) { try { return normalizeDB(JSON.parse(raw)); } catch (e) {} }
       for (const oldKey of LEGACY_KEYS) {
         const legacyRaw = safeGetStorage(oldKey);
         if (legacyRaw) {
@@ -964,63 +1093,115 @@
     let currentUser = null;
     try {
       const sRaw = safeGetSession(SESSION_KEY);
-      if (sRaw) currentUser = normalizeAccount(JSON.parse(sRaw));
+      if (sRaw) currentUser = JSON.parse(sRaw);
     } catch (e) { currentUser = null; }
 
-    let activeDate = new Date().toISOString().slice(0, 10);
+    let activeDate = '2026-11-22';
     let hadirSession = 'mengaji';
 
     function saveDB(pushCloud = true) {
       memoryFallbackDB = db;
       safeSetStorage(STORAGE_KEY, JSON.stringify(db));
-      if (pushCloud) pushToFirebase(false);
+      if (pushCloud) pushToFirebase();
     }
 
-    // ==================== PENOMORAN OTOMATIS DARI DATABASE ====================
-    function generateNextMuridCode(dateStr) {
-      const refDate = dateStr || activeDate || new Date().toISOString().slice(0, 10);
-      const yy = refDate.slice(2, 4);
-      const mm = refDate.slice(5, 7);
-      const prefix = `SOL${yy}${mm}`;
-      let maxSeq = 0;
-      db.murid.forEach(m => {
-        const c = (m.code || '').toUpperCase();
-        if (c.startsWith(prefix)) {
-          const seq = parseInt(c.slice(prefix.length), 10);
-          if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
+    // ==================== SINKRONISASI FIREBASE REALTIME OTOMATIS ====================
+    async function pushToFirebase() {
+      if (isSyncing) return;
+      isSyncing = true;
+      try {
+        const res = await fetch(FIREBASE_DB_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(db)
+        });
+        if (res.ok) {
+          const badge = document.getElementById('sync-status-badge');
+          if (badge) {
+            badge.textContent = 'Tersinkron Otomatis';
+            badge.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700';
+          }
         }
-      });
-      return `${prefix}${String(maxSeq + 1).padStart(3, '0')}`;
+      } catch (e) {} finally {
+        isSyncing = false;
+      }
     }
 
-    function generateNextGuruCode(dateStr) {
+    async function pullFromFirebase() {
+      if (isSyncing) return;
+      try {
+        const res = await fetch(FIREBASE_DB_URL);
+        if (!res.ok) return;
+        const cloudData = await res.json();
+        if (cloudData && (Array.isArray(cloudData.murid) || Array.isArray(cloudData.accounts))) {
+          const normalized = normalizeDB(cloudData);
+          if (JSON.stringify(normalized) !== JSON.stringify(db)) {
+            db = normalized;
+            safeSetStorage(STORAGE_KEY, JSON.stringify(db));
+            if (currentUser) {
+              const updatedSelf = db.accounts.find(a => a.id === currentUser.id);
+              if (updatedSelf) {
+                currentUser = updatedSelf;
+                safeSetSession(SESSION_KEY, JSON.stringify(currentUser));
+              }
+              refreshAllViews();
+            }
+          }
+        } else if (!cloudData) {
+          pushToFirebase();
+        }
+      } catch (e) {}
+    }
+
+    // ==================== GENERATOR NOMOR INDUK OTOMATIS ====================
+    function generateNextSequenceCode(prefixType, dateStr) {
       const refDate = dateStr || activeDate || new Date().toISOString().slice(0, 10);
       const yy = refDate.slice(2, 4);
       const mm = refDate.slice(5, 7);
-      const prefix = `GRU${yy}${mm}`;
+      const prefix = `${prefixType}${yy}${mm}`;
       let maxSeq = 0;
+
+      if (prefixType === 'SOL') {
+        db.murid.forEach(m => {
+          const c = (m.code || '').toUpperCase();
+          if (c.startsWith(prefix)) {
+            const n = parseInt(c.slice(prefix.length), 10);
+            if (!isNaN(n) && n > maxSeq) maxSeq = n;
+          }
+        });
+      }
       db.accounts.forEach(a => {
-        const c = (a.indukCode || '').toUpperCase();
+        const c = (a.userCode || '').toUpperCase();
         if (c.startsWith(prefix)) {
-          const seq = parseInt(c.slice(prefix.length), 10);
-          if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
+          const n = parseInt(c.slice(prefix.length), 10);
+          if (!isNaN(n) && n > maxSeq) maxSeq = n;
         }
       });
+
       return `${prefix}${String(maxSeq + 1).padStart(3, '0')}`;
     }
 
-    // ==================== HAK AKSES GRANULAR (RBAC + CHECKLIST ADMIN) ====================
-    function isAdmin() { return currentUser && currentUser.role === 'superadmin'; }
+    // ==================== HAK AKSES & PERMISSION CHECKLIST ====================
+    function isSuperAdmin() { return currentUser && currentUser.role === 'superadmin'; }
+    function isGuru() { return currentUser && currentUser.role === 'guru'; }
     function isWali() { return currentUser && currentUser.role === 'wali'; }
-    function hasPerm(permKey) {
+    function canWrite() { return isSuperAdmin() || isGuru(); }
+    function canEditOrDelete() { return isSuperAdmin(); }
+
+    function hasModuleAccess(modKey) {
       if (!currentUser) return false;
-      if (isAdmin()) return true;
-      const perms = currentUser.permissions || getDefaultPermissions(currentUser.role);
-      return Boolean(perms[permKey]);
+      if (isSuperAdmin() || modKey === 'atur') return true;
+      const perms = currentUser.permissions || (isWali() ? DEFAULT_PERMS_WALI : DEFAULT_PERMS_GURU);
+      return !!perms[modKey];
     }
-    function canWrite() { return isAdmin() || hasPerm('canWrite'); }
-    function canEditOrDelete() { return isAdmin(); }
-    function canUploadPhoto() { return isAdmin() || hasPerm('canUploadPhoto'); }
+
+    function openModule(modKey) {
+      if (!hasModuleAccess(modKey)) {
+        showToast('Akses modul ini belum diaktifkan oleh Admin untuk akun Anda.', 'warning');
+        return;
+      }
+      switchTab(modKey);
+    }
 
     function getAccessibleMurid() {
       if (!currentUser) return [];
@@ -1039,120 +1220,108 @@
       if (el) el.type = el.type === 'password' ? 'text' : 'password';
     }
 
-    // ==================== SWITCHER LOGIN & SIGN UP ====================
-    function switchAuthMode(mode) {
-      const isLogin = mode === 'login';
-      const tabLogin = document.getElementById('auth-tab-login');
-      const tabSignup = document.getElementById('auth-tab-signup');
-      const loginPanel = document.getElementById('login-panel');
-      const signupPanel = document.getElementById('signup-panel');
-
-      if (tabLogin) {
-        tabLogin.className = isLogin
-          ? 'py-2.5 text-xs font-extrabold rounded-xl bg-blue-600 text-white shadow-sm transition cursor-pointer select-none'
-          : 'py-2.5 text-xs font-extrabold rounded-xl text-slate-600 hover:text-slate-800 transition cursor-pointer select-none';
-      }
-      if (tabSignup) {
-        tabSignup.className = !isLogin
-          ? 'py-2.5 text-xs font-extrabold rounded-xl bg-indigo-600 text-white shadow-sm transition cursor-pointer select-none'
-          : 'py-2.5 text-xs font-extrabold rounded-xl text-slate-600 hover:text-slate-800 transition cursor-pointer select-none';
-      }
-      if (loginPanel) loginPanel.classList.toggle('hidden', !isLogin);
-      if (signupPanel) signupPanel.classList.toggle('hidden', isLogin);
-
-      const errEl = document.getElementById('login-error');
-      const fbEl = document.getElementById('signup-feedback');
-      if (errEl) errEl.classList.add('hidden');
-      if (fbEl) fbEl.classList.add('hidden');
+    function fillDemoAdmin() {
+      document.getElementById('login-username').value = 'superadmin';
+      document.getElementById('login-pin').value = '1234';
+      handleLogin();
     }
 
-    function toggleSignupWaliFields() {
+    // ==================== AUTH: LOGIN & SIGN UP ====================
+    function switchAuthMode(mode) {
+      const isLogin = mode === 'login';
+      document.getElementById('auth-tab-login').className = isLogin
+        ? 'py-2 text-xs font-extrabold rounded-xl bg-white text-blue-600 shadow-sm transition'
+        : 'py-2 text-xs font-bold rounded-xl text-slate-500 hover:text-slate-700 transition';
+      document.getElementById('auth-tab-signup').className = !isLogin
+        ? 'py-2 text-xs font-extrabold rounded-xl bg-white text-emerald-600 shadow-sm transition'
+        : 'py-2 text-xs font-bold rounded-xl text-slate-500 hover:text-slate-700 transition';
+
+      document.getElementById('auth-panel-login').classList.toggle('hidden', !isLogin);
+      document.getElementById('auth-panel-signup').classList.toggle('hidden', isLogin);
+      document.getElementById('login-error').classList.add('hidden');
+      document.getElementById('login-info').classList.add('hidden');
+      document.getElementById('signup-feedback').classList.add('hidden');
+    }
+
+    function toggleSignupFields() {
       const role = document.getElementById('signup-role').value;
-      document.getElementById('signup-wali-fields').classList.toggle('hidden', role !== 'wali');
-      document.getElementById('signup-guru-note').classList.toggle('hidden', role !== 'guru');
+      document.getElementById('signup-child-fields').classList.toggle('hidden', role !== 'wali');
     }
 
     function handleSignUp() {
-      const name = (document.getElementById('signup-name').value || '').trim();
-      const username = (document.getElementById('signup-username').value || '').trim();
-      const pin = (document.getElementById('signup-pin').value || '').trim();
       const role = document.getElementById('signup-role').value;
-      const muridName = (document.getElementById('signup-murid-name').value || '').trim();
-      const muridKelas = (document.getElementById('signup-murid-kelas').value || '').trim();
-      const muridProgram = document.getElementById('signup-murid-program').value;
+      const name = document.getElementById('signup-name').value.trim();
+      const username = document.getElementById('signup-username').value.trim();
+      const pin = document.getElementById('signup-pin').value.trim();
+      const childName = document.getElementById('signup-child-name').value.trim();
+      const childProgram = document.getElementById('signup-child-program').value;
+      const childKelas = document.getElementById('signup-child-kelas').value.trim();
       const fbEl = document.getElementById('signup-feedback');
 
-      const showFeedback = (msg, isError = true) => {
-        fbEl.textContent = msg;
-        fbEl.className = isError
-          ? 'text-xs font-semibold px-3 py-2 rounded-xl border text-rose-600 bg-rose-50 border-rose-200'
-          : 'text-xs font-semibold px-3 py-2 rounded-xl border text-emerald-700 bg-emerald-50 border-emerald-200';
-        fbEl.classList.remove('hidden');
-      };
-
       if (!name || !username || !pin) {
-        return showFeedback('Nama Lengkap, Username, dan PIN wajib diisi.');
+        fbEl.className = 'text-xs font-semibold px-3 py-2 rounded-xl border bg-rose-50 text-rose-700 border-rose-200';
+        fbEl.textContent = 'Nama lengkap, Username, dan PIN wajib diisi.';
+        fbEl.classList.remove('hidden');
+        return;
       }
-      if (pin.length < 4) {
-        return showFeedback('PIN minimal 4 angka.');
+      if (role === 'wali' && !childName) {
+        fbEl.className = 'text-xs font-semibold px-3 py-2 rounded-xl border bg-rose-50 text-rose-700 border-rose-200';
+        fbEl.textContent = 'Nama lengkap anak wajib diisi untuk pendaftaran Orang Tua / Wali.';
+        fbEl.classList.remove('hidden');
+        return;
       }
-      if (role === 'wali' && !muridName) {
-        return showFeedback('Nama Lengkap Anak / Murid wajib diisi untuk Orang Tua / Wali Murid.');
-      }
-
-      const existsActive = db.accounts.some(a => (a.username || '').toLowerCase() === username.toLowerCase());
-      const existsPending = db.pendingAccounts.some(p => (p.username || '').toLowerCase() === username.toLowerCase());
-      if (existsActive || existsPending) {
-        return showFeedback('Username sudah digunakan atau sedang menunggu persetujuan Admin.');
-      }
-
-      db.pendingAccounts.push({
-        id: 'pend-' + Date.now(),
-        name,
-        username,
-        pin,
-        role,
-        muridName: role === 'wali' ? muridName : '',
-        muridKelas: role === 'wali' ? muridKelas : '',
-        muridProgram: role === 'wali' ? muridProgram : '',
-        createdAt: new Date().toISOString().slice(0, 10)
-      });
-
-      saveDB();
-      document.getElementById('signup-name').value = '';
-      document.getElementById('signup-username').value = '';
-      document.getElementById('signup-pin').value = '';
-      document.getElementById('signup-murid-name').value = '';
-      document.getElementById('signup-murid-kelas').value = '';
-      showFeedback('Pendaftaran berhasil dikirim! Menunggu persetujuan & pengaturan hak akses oleh Admin.', false);
-    }
-
-    // ==================== LOGIN & LOGOUT ====================
-    function handleLogin() {
-      const unameInput = document.getElementById('login-username');
-      const pinInput = document.getElementById('login-pin');
-      const errEl = document.getElementById('login-error');
-      const uname = (unameInput.value || '').trim();
-      const pin = (pinInput.value || '').trim();
-
-      if (!uname || !pin) {
-        errEl.textContent = 'Harap isi Username / Nomor ID dan PIN.';
-        errEl.classList.remove('hidden');
+      if (db.accounts.some(a => (a.username || '').toLowerCase() === username.toLowerCase())) {
+        fbEl.className = 'text-xs font-semibold px-3 py-2 rounded-xl border bg-rose-50 text-rose-700 border-rose-200';
+        fbEl.textContent = 'Username tersebut sudah digunakan. Silakan pilih username lain.';
+        fbEl.classList.remove('hidden');
         return;
       }
 
-      const pendingMatch = db.pendingAccounts.find(p =>
-        (p.username || '').toLowerCase() === uname.toLowerCase() && String(p.pin) === pin
-      );
-      if (pendingMatch) {
-        errEl.textContent = 'Akun Anda masih menunggu persetujuan Admin. Silakan coba beberapa saat lagi.';
+      const newPending = {
+        id: 'acc-' + Date.now(),
+        userCode: '',
+        username,
+        pin,
+        name,
+        role,
+        status: 'pending',
+        muridCode: null,
+        pendingChild: role === 'wali' ? { name: childName, program: childProgram, kelas: childKelas } : null,
+        permissions: role === 'wali' ? { ...DEFAULT_PERMS_WALI } : { ...DEFAULT_PERMS_GURU },
+        createdAt: new Date().toISOString().slice(0, 10)
+      };
+
+      db.accounts.push(newPending);
+      saveDB(true);
+
+      document.getElementById('signup-name').value = '';
+      document.getElementById('signup-username').value = '';
+      document.getElementById('signup-pin').value = '';
+      document.getElementById('signup-child-name').value = '';
+      document.getElementById('signup-child-kelas').value = '';
+
+      fbEl.className = 'text-xs font-semibold px-3 py-2.5 rounded-xl border bg-emerald-50 text-emerald-800 border-emerald-200';
+      fbEl.textContent = 'Pendaftaran terkirim! Notifikasi telah muncul di Admin. Anda dapat login setelah Admin menyetujui & menerbitkan Nomor Induk.';
+      fbEl.classList.remove('hidden');
+    }
+
+    function handleLogin() {
+      const uname = (document.getElementById('login-username').value || '').trim();
+      const pin = (document.getElementById('login-pin').value || '').trim();
+      const errEl = document.getElementById('login-error');
+      const infoEl = document.getElementById('login-info');
+      errEl.classList.add('hidden');
+      infoEl.classList.add('hidden');
+
+      if (!uname || !pin) {
+        errEl.textContent = 'Harap isi Username / Nomor Induk dan PIN.';
         errEl.classList.remove('hidden');
         return;
       }
 
       let matchedAcc = db.accounts.find(a =>
         ((a.username || '').toLowerCase() === uname.toLowerCase() ||
-         (a.indukCode || '').toUpperCase() === uname.toUpperCase()) &&
+         (a.userCode || '').toUpperCase() === uname.toUpperCase()) &&
         String(a.pin) === pin
       );
 
@@ -1161,28 +1330,36 @@
           (m.code || '').toUpperCase() === uname.toUpperCase() && String(m.pin) === pin
         );
         if (matchedMurid) {
-          matchedAcc = normalizeAccount({
+          const linkedWali = db.accounts.find(a => a.role === 'wali' && (a.muridCode || '').toUpperCase() === matchedMurid.code.toUpperCase());
+          matchedAcc = linkedWali || {
             id: 'wali-direct-' + matchedMurid.id,
+            userCode: matchedMurid.code,
             username: matchedMurid.code,
             pin: matchedMurid.pin,
-            name: matchedMurid.wali ? `${matchedMurid.wali} (${matchedMurid.name})` : `Wali ${matchedMurid.name}`,
+            name: matchedMurid.wali ? `${matchedMurid.wali}` : `Wali ${matchedMurid.name}`,
             role: 'wali',
-            indukCode: matchedMurid.code,
+            status: 'approved',
             muridCode: matchedMurid.code,
+            permissions: { ...DEFAULT_PERMS_WALI },
             isDirectMuridLogin: true,
             muridId: matchedMurid.id
-          });
+          };
         }
       }
 
       if (!matchedAcc) {
-        errEl.textContent = 'Username / Nomor ID atau PIN tidak cocok.';
+        errEl.textContent = 'Username / Nomor Induk atau PIN tidak cocok.';
         errEl.classList.remove('hidden');
         return;
       }
 
-      errEl.classList.add('hidden');
-      currentUser = normalizeAccount(matchedAcc);
+      if (matchedAcc.status === 'pending') {
+        infoEl.textContent = 'Akun Anda masih menunggu persetujuan Admin. Silakan hubungi Admin Taman Belajar.';
+        infoEl.classList.remove('hidden');
+        return;
+      }
+
+      currentUser = matchedAcc;
       safeSetSession(SESSION_KEY, JSON.stringify(currentUser));
       initAppAfterLogin();
     }
@@ -1192,25 +1369,16 @@
       currentUser = null;
       document.getElementById('login-username').value = '';
       document.getElementById('login-pin').value = '';
-      document.getElementById('login-error').classList.add('hidden');
       switchAuthMode('login');
-      document.getElementById('auth-screen').classList.remove('hidden');
+      document.getElementById('login-screen').classList.remove('hidden');
     }
 
     function initAppAfterLogin() {
       if (!currentUser) {
-        document.getElementById('auth-screen').classList.remove('hidden');
+        document.getElementById('login-screen').classList.remove('hidden');
         return;
       }
-
-      // Sinkronkan perubahan akun terbaru dari db jika ada
-      const freshAcc = db.accounts.find(a => a.id === currentUser.id);
-      if (freshAcc) {
-        currentUser = normalizeAccount(freshAcc);
-        safeSetSession(SESSION_KEY, JSON.stringify(currentUser));
-      }
-
-      document.getElementById('auth-screen').classList.add('hidden');
+      document.getElementById('login-screen').classList.add('hidden');
       document.getElementById('user-display-name').textContent = currentUser.name;
       document.getElementById('date-picker').value = activeDate;
       document.getElementById('report-month-input').value = activeDate.slice(0, 7);
@@ -1220,56 +1388,48 @@
       const settingsPill = document.getElementById('settings-role-pill');
       const settingsDesc = document.getElementById('settings-account-desc');
 
-      if (isAdmin()) {
-        badge.textContent = 'ADMIN';
-        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-slate-900 shadow-sm';
+      if (isSuperAdmin()) {
+        badge.innerHTML = '<span>👑</span> Admin';
+        badge.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-extrabold bg-gradient-to-r from-amber-300 to-amber-400 text-slate-900 shadow-sm';
         banner.classList.add('hidden');
-        settingsPill.textContent = `SUPER ADMIN (${currentUser.indukCode || 'ADM2611001'})`;
+        settingsPill.textContent = 'ADMIN (KONTROL PENUH)';
         settingsPill.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800';
-        settingsDesc.textContent = 'Kontrol penuh sistem: beri izin pendaftaran user, atur checklist hak akses modul, edit/hapus data & backup database.';
-      } else if (currentUser.role === 'guru') {
-        badge.textContent = 'USER • GURU';
-        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-400 text-slate-950 shadow-sm';
-        banner.className = 'rounded-2xl p-3 text-xs border bg-emerald-50 border-emerald-200 text-emerald-800';
-        banner.innerHTML = `<b>User Guru (${currentUser.indukCode || '-'}):</b> Hak akses modul dan input kegiatan mengikuti izin yang diatur oleh Admin.`;
+        settingsDesc.textContent = 'Kontrol penuh: menyetujui user baru, mengatur checklist hak akses modul, mengelola semua data & backup JSON.';
+      } else if (isGuru()) {
+        badge.innerHTML = '<span>📘</span> User • Guru';
+        badge.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-extrabold bg-emerald-300 text-slate-950 shadow-sm';
+        banner.className = 'rounded-2xl p-3 text-xs border bg-emerald-50/90 border-emerald-200 text-emerald-900';
+        banner.innerHTML = `<b>User Guru (${currentUser.userCode || '-'}):</b> Dapat mencatat kehadiran, mengaji, nilai les, serta mengunggah dokumentasi foto kapan saja.`;
         banner.classList.remove('hidden');
-        settingsPill.textContent = `USER GURU • ID: ${currentUser.indukCode || '-'}`;
+        settingsPill.textContent = `USER GURU (${currentUser.userCode || '-'})`;
         settingsPill.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800';
-        settingsDesc.textContent = `Nomor Induk Guru: ${currentUser.indukCode || '-'}. Akses modul disesuaikan dengan checklist izin dari Admin.`;
+        settingsDesc.textContent = 'Akun User Pengajar aktif sesuai modul yang diizinkan oleh Admin.';
       } else {
         const anak = getAccessibleMurid()[0];
-        badge.textContent = 'USER • ORTU';
-        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-300 text-slate-950 shadow-sm';
-        banner.className = 'rounded-2xl p-3 text-xs border bg-sky-50 border-sky-200 text-sky-900';
-        banner.innerHTML = `<b>User Orang Tua (${anak ? anak.code + ' - ' + anak.name : currentUser.muridCode}):</b> Pantau perkembangan belajar, mengaji & dokumentasi kegiatan anak.`;
+        badge.innerHTML = '<span>👪</span> User • Wali';
+        badge.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-extrabold bg-sky-200 text-slate-950 shadow-sm';
+        banner.className = 'rounded-2xl p-3 text-xs border bg-sky-50/90 border-sky-200 text-sky-900';
+        banner.innerHTML = `<b>User Orang Tua (${anak ? anak.code + ' - ' + anak.name : currentUser.muridCode}):</b> Memantau kehadiran, nilai les, dan progres mengaji anak Anda.`;
         banner.classList.remove('hidden');
-        settingsPill.textContent = `USER ORTU • ID: ${currentUser.muridCode || '-'}`;
+        settingsPill.textContent = `USER ORANG TUA (${currentUser.muridCode || '-'})`;
         settingsPill.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800';
-        settingsDesc.textContent = `Nomor Induk Anak: ${currentUser.muridCode || '-'}. Akses modul disesuaikan dengan checklist izin dari Admin.`;
+        settingsDesc.textContent = 'Akun User Orang Tua / Wali Murid untuk memantau perkembangan belajar putra/putri Anda.';
       }
 
-      // Terapkan visibilitas tombol & kartu menu berdasarkan checklist hak akses Admin
+      ['les', 'mengaji', 'hadir', 'laporan', 'murid'].forEach(mod => {
+        const tile = document.getElementById('tile-' + mod);
+        if (tile) tile.classList.toggle('opacity-45', !hasModuleAccess(mod));
+      });
+
       document.getElementById('btn-add-murid').classList.toggle('hidden', !canWrite());
       document.getElementById('btn-hadir-semua').classList.toggle('hidden', !canWrite());
       document.getElementById('btn-add-mengaji').classList.toggle('hidden', !canWrite());
       document.getElementById('btn-add-les').classList.toggle('hidden', !canWrite());
-      document.getElementById('btn-add-doc-photo').classList.toggle('hidden', !canUploadPhoto());
+      document.getElementById('btn-add-doc').classList.toggle('hidden', !(canWrite() && hasModuleAccess('dokumentasi')));
 
-      document.getElementById('menu-card-murid').classList.toggle('hidden', !hasPerm('murid'));
-      document.getElementById('menu-card-hadir').classList.toggle('hidden', !hasPerm('hadir'));
-      document.getElementById('menu-card-mengaji').classList.toggle('hidden', !hasPerm('mengaji'));
-      document.getElementById('menu-card-les').classList.toggle('hidden', !hasPerm('les'));
-      document.getElementById('menu-card-laporan').classList.toggle('hidden', !hasPerm('laporan'));
-      document.getElementById('dashboard-doc-section').classList.toggle('hidden', !hasPerm('beranda') && !canUploadPhoto());
-
-      // Bottom Nav visibility sesuai izin
-      document.querySelector('[data-nav="murid"]').classList.toggle('hidden', !hasPerm('murid'));
-      document.querySelector('[data-nav="hadir"]').classList.toggle('hidden', !hasPerm('hadir'));
-      document.querySelector('[data-nav="laporan"]').classList.toggle('hidden', !hasPerm('laporan'));
-
-      // Panel khusus Super Admin
-      document.getElementById('superadmin-account-panel').classList.toggle('hidden', !isAdmin());
-      document.getElementById('backup-panel').classList.toggle('hidden', !isAdmin());
+      document.getElementById('admin-approval-panel').classList.toggle('hidden', !isSuperAdmin());
+      document.getElementById('superadmin-account-panel').classList.toggle('hidden', !isSuperAdmin());
+      document.getElementById('backup-panel').classList.toggle('hidden', !isSuperAdmin());
 
       if (isWali()) {
         document.getElementById('stat-murid-label').textContent = 'Nomor ID';
@@ -1278,178 +1438,16 @@
       } else {
         document.getElementById('stat-murid-label').textContent = 'Murid Aktif';
         document.getElementById('menu-murid-title').textContent = 'Data Murid';
-        document.getElementById('menu-murid-sub').textContent = 'Nomor ID & profil anak';
+        document.getElementById('menu-murid-sub').textContent = 'Akun, ID & profil anak';
       }
 
+      document.getElementById('self-acc-code').textContent = currentUser.userCode || currentUser.muridCode || '-';
       document.getElementById('self-acc-name').value = currentUser.name || '';
       document.getElementById('self-acc-username').value = currentUser.username || '';
       document.getElementById('self-acc-pin').value = currentUser.pin || '';
 
       updateDateUI();
       switchTab('beranda');
-    }
-
-    // ==================== PERSETUJUAN PENDAFTARAN & CHECKLIST HAK AKSES (EKSKLUSIF ADMIN) ====================
-    function renderPendingSignups() {
-      const pending = db.pendingAccounts || [];
-      const count = pending.length;
-      const canApprove = isAdmin();
-
-      const headerBtn = document.getElementById('header-pending-notif');
-      const berandaAlert = document.getElementById('pending-signup-alert');
-      const aturPanel = document.getElementById('pending-approval-panel');
-
-      if (!canApprove || count === 0) {
-        if (headerBtn) headerBtn.classList.add('hidden');
-        if (berandaAlert) berandaAlert.classList.add('hidden');
-        if (aturPanel) aturPanel.classList.add('hidden');
-        return;
-      }
-
-      document.getElementById('header-pending-count').textContent = count;
-      document.getElementById('beranda-pending-badge').textContent = `${count} Menunggu`;
-      document.getElementById('atur-pending-count').textContent = `${count} Menunggu`;
-
-      headerBtn.classList.remove('hidden');
-      berandaAlert.classList.remove('hidden');
-      aturPanel.classList.remove('hidden');
-
-      const renderItem = (p) => {
-        const roleLabel = p.role === 'guru' ? 'User Guru' : 'User Orang Tua';
-        const childInfo = p.role === 'wali'
-          ? `Anak: <b>${p.muridName}</b> (${p.muridProgram || 'Keduanya'})`
-          : 'Mendaftar sebagai Guru Pengajar';
-        return `
-          <div class="bg-white p-3 rounded-xl border border-amber-200 flex items-center justify-between gap-2 text-xs">
-            <div class="min-w-0">
-              <div class="flex items-center gap-1.5">
-                <span class="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-[9px] font-extrabold uppercase">${roleLabel}</span>
-                <p class="font-extrabold text-slate-800 truncate">${p.name}</p>
-              </div>
-              <p class="text-[10px] text-slate-500 mt-0.5 truncate">User: <b>${p.username}</b> • ${childInfo}</p>
-            </div>
-            <div class="flex items-center gap-1 shrink-0">
-              <button type="button" onclick="openApprovePendingModal('${p.id}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white text-[10px] font-bold shadow-xs">
-                Atur Izin
-              </button>
-              <button type="button" onclick="rejectPendingAccount('${p.id}')" class="px-2 py-1.5 rounded-lg bg-rose-100 text-rose-700 text-[10px] font-bold">
-                Tolak
-              </button>
-            </div>
-          </div>
-        `;
-      };
-
-      document.getElementById('beranda-pending-list').innerHTML = pending.map(renderItem).join('');
-      document.getElementById('pending-account-list').innerHTML = pending.map(renderItem).join('');
-    }
-
-    function openPendingApprovalShortcut() {
-      switchTab('atur');
-    }
-
-    function buildPermissionCheckboxesHTML(prefix, currentPerms) {
-      return PERMISSION_ITEMS.map(item => {
-        const checked = currentPerms && currentPerms[item.key] ? 'checked' : '';
-        return `
-          <label class="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-white/80 cursor-pointer select-none">
-            <input type="checkbox" id="${prefix}-${item.key}" ${checked}
-              class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300" />
-            <span class="text-xs font-semibold text-slate-700">${item.label}</span>
-          </label>
-        `;
-      }).join('');
-    }
-
-    function readPermissionCheckboxes(prefix) {
-      const result = {};
-      PERMISSION_ITEMS.forEach(item => {
-        const el = document.getElementById(`${prefix}-${item.key}`);
-        result[item.key] = el ? el.checked : false;
-      });
-      return result;
-    }
-
-    function openApprovePendingModal(pendingId) {
-      if (!isAdmin()) return;
-      const p = db.pendingAccounts.find(x => x.id === pendingId);
-      if (!p) return;
-
-      document.getElementById('approve-pending-id').value = p.id;
-      document.getElementById('approve-user-name').textContent = p.name;
-      document.getElementById('approve-user-role').textContent = p.role === 'guru' ? 'User Guru' : 'User Orang Tua';
-      document.getElementById('approve-user-username').textContent = p.username;
-      document.getElementById('approve-user-pin').textContent = p.pin;
-
-      const nextCode = p.role === 'guru' ? generateNextGuruCode(activeDate) : generateNextMuridCode(activeDate);
-      document.getElementById('approve-auto-code-info').textContent =
-        p.role === 'guru'
-          ? `Nomor Induk Guru Otomatis: ${nextCode}`
-          : `Nomor Induk Murid Otomatis: ${nextCode} (${p.muridName})`;
-
-      const defaultPerms = getDefaultPermissions(p.role);
-      document.getElementById('approve-permissions-checklist').innerHTML = buildPermissionCheckboxesHTML('appr-perm', defaultPerms);
-      document.getElementById('modal-approve-pending').classList.remove('hidden');
-    }
-
-    function confirmApprovePending() {
-      if (!isAdmin()) return;
-      const pendingId = document.getElementById('approve-pending-id').value;
-      const idx = db.pendingAccounts.findIndex(x => x.id === pendingId);
-      if (idx === -1) return;
-
-      const p = db.pendingAccounts[idx];
-      const chosenPermissions = readPermissionCheckboxes('appr-perm');
-      let assignedInduk = '';
-      let linkedMuridCode = null;
-
-      if (p.role === 'wali') {
-        linkedMuridCode = generateNextMuridCode(activeDate);
-        assignedInduk = linkedMuridCode;
-        db.murid.push({
-          id: 'm-' + Date.now(),
-          code: linkedMuridCode,
-          pin: p.pin,
-          name: p.muridName || p.name,
-          program: p.muridProgram || 'Keduanya',
-          kelas: p.muridKelas || '-',
-          wali: p.name,
-          regMonth: activeDate.slice(0, 7)
-        });
-      } else {
-        assignedInduk = generateNextGuruCode(activeDate);
-      }
-
-      db.accounts.push({
-        id: 'acc-' + Date.now(),
-        username: p.username,
-        pin: p.pin,
-        name: p.name,
-        role: p.role,
-        indukCode: assignedInduk,
-        muridCode: linkedMuridCode,
-        permissions: chosenPermissions
-      });
-
-      db.pendingAccounts.splice(idx, 1);
-      saveDB();
-      closeModal('modal-approve-pending');
-      refreshAllViews();
-      alert(`Pendaftaran "${p.name}" disetujui!\nNomor Induk: ${assignedInduk}`);
-    }
-
-    function rejectPendingFromModal() {
-      const pendingId = document.getElementById('approve-pending-id').value;
-      closeModal('modal-approve-pending');
-      rejectPendingAccount(pendingId);
-    }
-
-    function rejectPendingAccount(pendingId) {
-      if (!isAdmin()) return;
-      if (!confirm('Tolak dan hapus permintaan pendaftaran ini?')) return;
-      db.pendingAccounts = db.pendingAccounts.filter(x => x.id !== pendingId);
-      saveDB();
-      refreshAllViews();
     }
 
     // ==================== NAVIGASI & TANGGAL ====================
@@ -1468,22 +1466,24 @@
     }
 
     function switchTab(tabName) {
-      // Cegah akses tab jika dicabut izinnya oleh Admin
-      if (['murid', 'hadir', 'mengaji', 'les', 'laporan'].includes(tabName) && !hasPerm(tabName)) {
-        return alert('Akses ke modul ini belum diaktifkan oleh Admin.');
-      }
-
       ['beranda', 'murid', 'hadir', 'mengaji', 'les', 'laporan', 'atur'].forEach(t => {
         const el = document.getElementById('view-' + t);
         if (el) el.classList.toggle('hidden', t !== tabName);
       });
 
       document.querySelectorAll('.nav-btn').forEach(btn => {
-        const isMatch = btn.dataset.nav === tabName;
-        const isHidden = btn.classList.contains('hidden');
-        btn.className = (isMatch
-          ? 'nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-blue-600 bg-blue-50/80 font-bold'
-          : 'nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-medium') + (isHidden ? ' hidden' : '');
+        const navKey = btn.dataset.nav;
+        const isMatch = navKey === tabName;
+        if (navKey === 'hadir') {
+          const lbl = document.getElementById('center-hadir-label');
+          if (lbl) lbl.className = isMatch ? 'text-[10px] font-extrabold text-blue-600 mt-0.5' : 'text-[10px] font-bold text-slate-500 mt-0.5';
+        } else {
+          btn.className = isMatch
+            ? 'nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-blue-600 font-extrabold'
+            : 'nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-semibold';
+          const dot = btn.querySelector('.nav-dot');
+          if (dot) dot.classList.toggle('hidden', !isMatch);
+        }
       });
 
       const scrollArea = document.getElementById('main-scroll-area');
@@ -1493,8 +1493,7 @@
 
     function refreshAllViews() {
       updateHeaderStats();
-      renderPendingSignups();
-      renderPhotoGallery();
+      renderDashboardDocs();
       renderTodayActivity();
       renderMuridList();
       renderHadirList();
@@ -1502,7 +1501,12 @@
       renderLesList();
       populateReportSelectors();
       renderReportPreview();
-      if (isAdmin()) renderAccountList();
+      if (isSuperAdmin()) {
+        renderPendingApprovals();
+        renderAccountList();
+      } else {
+        document.getElementById('admin-pending-banner').classList.add('hidden');
+      }
     }
 
     function updateHeaderStats() {
@@ -1520,24 +1524,19 @@
       document.getElementById('stat-les').textContent = hadirLesCount;
     }
 
-    // ==================== MODUL DOKUMENTASI FOTO KEGIATAN (GURU KAPAN SAJA) ====================
-    let pendingCompressedImage = null;
-
-    function openPhotoDocModal() {
-      if (!canUploadPhoto()) return alert('Anda tidak memiliki izin mengunggah dokumentasi foto.');
-      pendingCompressedImage = null;
-      document.getElementById('doc-photo-file').value = '';
-      document.getElementById('doc-photo-caption').value = '';
-      const prevEl = document.getElementById('doc-photo-preview');
-      prevEl.src = '';
-      prevEl.classList.add('hidden');
-
-      const now = new Date();
-      const nowLabel = now.toLocaleDateString('id-ID', {
-        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-      }) + ' • ' + now.toTimeString().slice(0, 5);
-      document.getElementById('doc-photo-auto-date').textContent = nowLabel;
-      document.getElementById('modal-photo-doc').classList.remove('hidden');
+    // ==================== MODUL DOKUMENTASI FOTO KEGIATAN ====================
+    function openDocModal() {
+      if (!(canWrite() && hasModuleAccess('dokumentasi'))) {
+        showToast('Anda tidak memiliki izin mengunggah dokumentasi foto.', 'warning');
+        return;
+      }
+      pendingPhotoBase64 = '';
+      document.getElementById('doc-photo-input').value = '';
+      document.getElementById('doc-photo-preview').classList.add('hidden');
+      document.getElementById('doc-caption').value = '';
+      const todayStr = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      document.getElementById('doc-auto-date-label').textContent = todayStr;
+      document.getElementById('modal-doc').classList.remove('hidden');
     }
 
     function previewDocPhoto(event) {
@@ -1548,107 +1547,105 @@
         const img = new Image();
         img.onload = function() {
           const canvas = document.createElement('canvas');
-          const maxDim = 800;
-          let w = img.width;
-          let h = img.height;
-          if (w > maxDim || h > maxDim) {
-            if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
-            else { w = Math.round((w * maxDim) / h); h = maxDim; }
-          }
-          canvas.width = w;
-          canvas.height = h;
+          const maxW = 720;
+          const scale = img.width > maxW ? maxW / img.width : 1;
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
           const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-          pendingCompressedImage = canvas.toDataURL('image/jpeg', 0.72);
-          const prevEl = document.getElementById('doc-photo-preview');
-          prevEl.src = pendingCompressedImage;
-          prevEl.classList.remove('hidden');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          pendingPhotoBase64 = canvas.toDataURL('image/jpeg', 0.72);
+          const prev = document.getElementById('doc-photo-preview');
+          prev.src = pendingPhotoBase64;
+          prev.classList.remove('hidden');
         };
         img.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
 
-    function savePhotoDoc() {
-      if (!canUploadPhoto()) return;
-      const caption = document.getElementById('doc-photo-caption').value.trim();
-      if (!pendingCompressedImage) return alert('Silakan pilih atau ambil foto terlebih dahulu.');
-      if (!caption) return alert('Harap isi keterangan singkat dokumentasi.');
+    function saveDocForm() {
+      const caption = document.getElementById('doc-caption').value.trim();
+      if (!pendingPhotoBase64) return showToast('Pilih atau ambil foto kegiatan terlebih dahulu.', 'error');
+      if (!caption) return showToast('Isi keterangan singkat kegiatan.', 'error');
 
       const now = new Date();
-      const isoDate = now.toISOString().slice(0, 10);
-      const displayDate = now.toLocaleDateString('id-ID', {
-        day: 'numeric', month: 'short', year: 'numeric'
-      }) + ' ' + now.toTimeString().slice(0, 5);
+      const autoDate = now.toISOString().slice(0, 10);
+      const autoTime = now.toTimeString().slice(0, 5);
 
-      db.photos.unshift({
-        id: 'pic-' + Date.now(),
-        image: pendingCompressedImage,
+      db.docs.unshift({
+        id: 'doc-' + Date.now(),
+        photo: pendingPhotoBase64,
         caption,
-        dateISO: isoDate,
-        dateLabel: displayDate,
+        date: autoDate,
+        time: autoTime,
         author: currentUser.name
       });
 
-      if (db.photos.length > 30) db.photos = db.photos.slice(0, 30);
-      saveDB();
-      closeModal('modal-photo-doc');
-      renderPhotoGallery();
+      saveDB(true);
+      closeModal('modal-doc');
+      renderDashboardDocs();
+      showToast('Dokumentasi kegiatan berhasil ditambahkan!', 'success');
     }
 
-    function renderPhotoGallery() {
-      const container = document.getElementById('dashboard-photo-gallery');
-      if (!container) return;
-      const items = db.photos || [];
+    function deleteDoc(id) {
+      if (!isSuperAdmin()) return;
+      showConfirmDialog('Hapus foto dokumentasi ini?', () => {
+        db.docs = db.docs.filter(d => d.id !== id);
+        saveDB(true);
+        renderDashboardDocs();
+        showToast('Dokumentasi foto dihapus.', 'info');
+      });
+    }
 
-      if (items.length === 0) {
-        container.className = 'text-xs text-slate-400 italic';
-        container.innerHTML = `<p>Belum ada dokumentasi foto kegiatan.</p>`;
+    function openDocView(id) {
+      const item = db.docs.find(d => d.id === id);
+      if (!item) return;
+      document.getElementById('doc-view-img').src = item.photo;
+      document.getElementById('doc-view-meta').textContent = `${item.date} • ${item.time || ''} • Oleh: ${item.author}`;
+      document.getElementById('doc-view-caption').textContent = item.caption;
+      document.getElementById('modal-doc-view').classList.remove('hidden');
+    }
+
+    function updateDocCarouselDots() {
+      const listEl = document.getElementById('dashboard-doc-list');
+      const dotsEl = document.getElementById('doc-dots-indicator');
+      if (!listEl || !dotsEl) return;
+      const total = Math.max(1, Math.min(db.docs.length, 5));
+      const maxScroll = Math.max(1, listEl.scrollWidth - listEl.clientWidth);
+      const activeIdx = Math.min(total - 1, Math.round((listEl.scrollLeft / maxScroll) * (total - 1)));
+      dotsEl.innerHTML = Array.from({ length: total }).map((_, i) =>
+        i === activeIdx
+          ? '<span class="w-4 h-1.5 rounded-full bg-blue-600 transition-all"></span>'
+          : '<span class="w-1.5 h-1.5 rounded-full bg-slate-300 transition-all"></span>'
+      ).join('');
+    }
+
+    function renderDashboardDocs() {
+      const container = document.getElementById('dashboard-doc-list');
+      const dots = document.getElementById('doc-dots-indicator');
+      if (!db.docs || db.docs.length === 0) {
+        container.innerHTML = `
+          <div class="w-full py-5 px-3 rounded-2xl bg-slate-50/80 border border-dashed border-slate-200 text-center text-[11px] text-slate-400">
+            Belum ada dokumentasi foto kegiatan. Guru dapat mengunggah foto kapan saja.
+          </div>`;
+        dots.classList.add('hidden');
         return;
       }
 
-      container.className = 'grid grid-cols-2 gap-2.5';
-      container.innerHTML = items.slice(0, 6).map(pic => `
-        <div onclick="openPhotoViewer('${pic.id}')" class="group bg-slate-50 rounded-2xl overflow-hidden border border-slate-200/80 cursor-pointer active:scale-[0.98] transition shadow-xs">
-          <div class="relative aspect-[4/3] bg-slate-200 overflow-hidden">
-            <img src="${pic.image}" alt="${pic.caption}" class="w-full h-full object-cover" />
-            <span class="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md bg-slate-900/75 text-white text-[9px] font-bold">
-              ${pic.dateLabel}
-            </span>
-          </div>
-          <div class="p-2">
-            <p class="text-[11px] font-bold text-slate-800 line-clamp-2 leading-snug">${pic.caption}</p>
-            <p class="text-[9px] text-slate-400 mt-0.5 truncate">Oleh: ${pic.author || 'Guru'}</p>
+      dots.classList.remove('hidden');
+      container.innerHTML = db.docs.map(d => `
+        <div class="w-44 shrink-0 rounded-2xl overflow-hidden bg-white border border-slate-100 shadow-2xs relative group">
+          <img src="${d.photo}" onclick="openDocView('${d.id}')" class="w-full h-24 object-cover cursor-pointer" alt="Kegiatan" />
+          ${isSuperAdmin() ? `
+            <button type="button" onclick="deleteDoc('${d.id}')" class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600/90 text-white text-[10px] font-bold shadow">✕</button>
+          ` : ''}
+          <div class="p-2 cursor-pointer" onclick="openDocView('${d.id}')">
+            <p class="text-[11px] font-bold text-slate-800 truncate">${d.caption}</p>
+            <p class="text-[9.5px] text-slate-400 truncate mt-0.5">📅 ${d.date} • ${d.author}</p>
           </div>
         </div>
       `).join('');
-    }
-
-    function openPhotoViewer(picId) {
-      const pic = (db.photos || []).find(p => p.id === picId);
-      if (!pic) return;
-      document.getElementById('viewer-photo-img').src = pic.image;
-      document.getElementById('viewer-photo-date').textContent = pic.dateLabel;
-      document.getElementById('viewer-photo-author').textContent = 'Oleh: ' + (pic.author || 'Guru');
-      document.getElementById('viewer-photo-caption').textContent = pic.caption;
-
-      const delBtn = document.getElementById('btn-delete-photo-doc');
-      if (canEditOrDelete()) {
-        delBtn.classList.remove('hidden');
-        delBtn.onclick = function() { deletePhotoDoc(pic.id); };
-      } else {
-        delBtn.classList.add('hidden');
-      }
-      document.getElementById('modal-photo-viewer').classList.remove('hidden');
-    }
-
-    function deletePhotoDoc(picId) {
-      if (!canEditOrDelete()) return;
-      if (!confirm('Hapus foto dokumentasi ini?')) return;
-      db.photos = (db.photos || []).filter(p => p.id !== picId);
-      saveDB();
-      closeModal('modal-photo-viewer');
-      renderPhotoGallery();
+      updateDocCarouselDots();
     }
 
     function renderTodayActivity() {
@@ -1669,7 +1666,7 @@
       mgToday.forEach(item => {
         const m = db.murid.find(x => x.id === item.muridId);
         html += `
-          <div class="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100 flex items-center justify-between gap-2">
+          <div class="p-2.5 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-center justify-between gap-2">
             <div class="min-w-0">
               <p class="font-bold text-slate-800 truncate">${m ? m.name : 'Murid'} <span class="text-[10px] font-semibold text-emerald-700">(${m ? m.code : ''})</span></p>
               <p class="text-[11px] text-slate-600 truncate">Mengaji: ${item.jilid} • ${item.halaman}</p>
@@ -1680,7 +1677,7 @@
       lsToday.forEach(item => {
         const m = db.murid.find(x => x.id === item.muridId);
         html += `
-          <div class="p-2.5 rounded-xl bg-blue-50/70 border border-blue-100 flex items-center justify-between gap-2">
+          <div class="p-2.5 rounded-2xl bg-blue-50/70 border border-blue-100 flex items-center justify-between gap-2">
             <div class="min-w-0">
               <p class="font-bold text-slate-800 truncate">${m ? m.name : 'Murid'} <span class="text-[10px] font-semibold text-blue-700">(${m ? m.code : ''})</span></p>
               <p class="text-[11px] text-slate-600 truncate">Les ${item.mapel}: ${item.materi}</p>
@@ -1714,7 +1711,7 @@
             <div class="min-w-0">
               <p class="text-xs font-extrabold text-slate-800 truncate">${m.name}</p>
               <p class="text-[11px] text-slate-500 truncate">${m.kelas || '-'} • Program: <b>${m.program}</b></p>
-              <p class="text-[10px] text-slate-400 truncate">Wali: ${m.wali || '-'} ${isAdmin() ? `• PIN Wali: <b class="text-slate-600">${m.pin}</b>` : ''}</p>
+              <p class="text-[10px] text-slate-400 truncate">Wali: ${m.wali || '-'} ${isSuperAdmin() ? `• PIN: <b class="text-slate-600">${m.pin}</b>` : ''}</p>
             </div>
           </div>
           ${canEditOrDelete() ? `
@@ -1746,8 +1743,11 @@
     }
 
     function openMuridModal(editId = null) {
-      if (editId && !canEditOrDelete()) return alert('Hanya Admin yang dapat mengubah data lama.');
-      if (!editId && !canWrite()) return alert('Anda tidak memiliki izin menambah data baru.');
+      if (editId && !canEditOrDelete()) {
+        showToast('User Guru hanya dapat menambah data baru, tidak dapat mengubah data lama.', 'warning');
+        return;
+      }
+      if (!editId && !canWrite()) return;
 
       document.getElementById('murid-edit-id').value = editId || '';
       if (editId) {
@@ -1761,7 +1761,7 @@
         document.getElementById('murid-wali').value = m.wali || '';
       } else {
         document.getElementById('modal-murid-title').textContent = 'Tambah Data Murid Baru';
-        document.getElementById('murid-code').value = generateNextMuridCode(activeDate);
+        document.getElementById('murid-code').value = generateNextSequenceCode('SOL', activeDate);
         document.getElementById('murid-pin').value = '1234';
         document.getElementById('murid-name').value = '';
         document.getElementById('murid-program').value = 'Keduanya';
@@ -1780,7 +1780,7 @@
       const kelas = document.getElementById('murid-kelas').value.trim();
       const wali = document.getElementById('murid-wali').value.trim();
 
-      if (!code || !name) return alert('Nomor Murid dan Nama Lengkap wajib diisi.');
+      if (!code || !name) return showToast('Nomor Murid dan Nama Lengkap wajib diisi.', 'error');
 
       if (editId) {
         if (!canEditOrDelete()) return;
@@ -1788,32 +1788,35 @@
         if (idx !== -1) db.murid[idx] = { ...db.murid[idx], code, pin, name, program, kelas, wali };
       } else {
         if (db.murid.some(x => (x.code || '').toUpperCase() === code)) {
-          return alert(`Nomor Murid ${code} sudah digunakan.`);
+          return showToast(`Nomor Murid ${code} sudah digunakan.`, 'error');
         }
         db.murid.push({ id: 'm-' + Date.now(), code, pin, name, program, kelas, wali, regMonth: activeDate.slice(0, 7) });
       }
-      saveDB();
+      saveDB(true);
       closeModal('modal-murid');
       refreshAllViews();
+      showToast('Data murid berhasil disimpan.', 'success');
     }
 
     function deleteMurid(id) {
-      if (!canEditOrDelete()) return alert('Hanya Admin yang dapat menghapus data.');
-      if (!confirm('Hapus data murid ini?')) return;
-      db.murid = db.murid.filter(m => m.id !== id);
-      saveDB();
-      refreshAllViews();
+      if (!canEditOrDelete()) return showToast('Hanya Admin yang dapat menghapus data.', 'warning');
+      showConfirmDialog('Hapus data murid ini secara permanen?', () => {
+        db.murid = db.murid.filter(m => m.id !== id);
+        saveDB(true);
+        refreshAllViews();
+        showToast('Data murid dihapus.', 'info');
+      });
     }
 
     // ==================== MODUL KEHADIRAN ====================
     function setHadirSession(sess) {
       hadirSession = sess;
       document.getElementById('subtab-hadir-mengaji').className = sess === 'mengaji'
-        ? 'py-2 text-xs font-bold rounded-lg bg-white text-emerald-700 shadow-sm transition'
-        : 'py-2 text-xs font-bold rounded-lg text-slate-600 transition';
+        ? 'py-2 text-xs font-extrabold rounded-xl bg-emerald-600 text-white shadow-sm transition'
+        : 'py-2 text-xs font-bold rounded-xl text-slate-600 transition';
       document.getElementById('subtab-hadir-les').className = sess === 'les'
-        ? 'py-2 text-xs font-bold rounded-lg bg-white text-blue-700 shadow-sm transition'
-        : 'py-2 text-xs font-bold rounded-lg text-slate-600 transition';
+        ? 'py-2 text-xs font-extrabold rounded-xl bg-blue-600 text-white shadow-sm transition'
+        : 'py-2 text-xs font-bold rounded-xl text-slate-600 transition';
       renderHadirList();
     }
 
@@ -1834,20 +1837,20 @@
 
       container.innerHTML = list.map(m => {
         const isPresent = presentIds.has(m.id);
-        const lockedForNonAdmin = isPresent && !isAdmin();
-        const disabled = !canWrite() || lockedForNonAdmin;
+        const lockedForGuru = isPresent && isGuru();
+        const disabled = isWali() || lockedForGuru;
 
         return `
           <div onclick="${disabled ? '' : `toggleAttendance('${m.id}')`}"
-            class="bg-white p-3.5 rounded-2xl border ${isPresent ? 'border-emerald-300 bg-emerald-50/30' : 'border-slate-100'} shadow-sm flex items-center justify-between gap-3 ${disabled ? 'cursor-default' : 'cursor-pointer active:scale-[0.99]'} transition">
+            class="bg-white p-3.5 rounded-2xl border ${isPresent ? 'border-emerald-300 bg-emerald-50/40' : 'border-slate-100'} shadow-sm flex items-center justify-between gap-3 ${disabled ? 'cursor-default' : 'cursor-pointer active:scale-[0.99]'} transition">
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
                 <span class="px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-600">${m.code}</span>
                 <p class="text-xs font-bold text-slate-800 truncate">${m.name}</p>
               </div>
-              <p class="text-[11px] text-slate-500 mt-0.5">${isPresent ? 'Status: Hadir' : 'Status: Belum Hadir'} ${lockedForNonAdmin ? '• (Terkunci)' : ''}</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">${isPresent ? 'Status: Hadir' : 'Status: Belum Hadir'} ${lockedForGuru ? '• (Terkunci)' : ''}</p>
             </div>
-            <div class="w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs ${isPresent ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-300'}">
+            <div class="w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs ${isPresent ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-slate-100 text-slate-300'}">
               ✓
             </div>
           </div>
@@ -1865,12 +1868,13 @@
         arr.push(muridId);
       } else {
         if (!canEditOrDelete()) {
-          return alert('Hanya Admin yang dapat membatalkan kehadiran yang sudah tercatat.');
+          showToast('User Guru tidak dapat membatalkan kehadiran yang sudah tercatat.', 'warning');
+          return;
         }
         arr.splice(idx, 1);
       }
       db.attendance[activeDate][hadirSession] = arr;
-      saveDB();
+      saveDB(true);
       refreshAllViews();
     }
 
@@ -1881,8 +1885,9 @@
         .filter(m => m.program === 'Keduanya' || (hadirSession === 'mengaji' && m.program === 'Mengaji') || (hadirSession === 'les' && m.program === 'Les'))
         .map(m => m.id);
       db.attendance[activeDate][hadirSession] = Array.from(new Set([...(db.attendance[activeDate][hadirSession] || []), ...eligibleIds]));
-      saveDB();
+      saveDB(true);
       refreshAllViews();
+      showToast('Semua murid pada sesi ini ditandai hadir.', 'success');
     }
 
     // ==================== MODUL MENGAJI ====================
@@ -1926,8 +1931,11 @@
     }
 
     function openMengajiModal(editId = null) {
-      if (editId && !canEditOrDelete()) return alert('Hanya Admin yang dapat mengubah catatan lama.');
-      if (!editId && !canWrite()) return alert('Anda tidak memiliki izin mencatat data baru.');
+      if (editId && !canEditOrDelete()) {
+        showToast('User Guru tidak memiliki akses mengubah catatan lama.', 'warning');
+        return;
+      }
+      if (!editId && !canWrite()) return;
 
       const select = document.getElementById('mengaji-murid-id');
       select.innerHTML = db.murid.map(m => `<option value="${m.id}">${m.code} - ${m.name}</option>`).join('');
@@ -1956,7 +1964,7 @@
       const editId = document.getElementById('mengaji-edit-id').value;
       const jilid = document.getElementById('mengaji-jilid').value.trim();
       const halaman = document.getElementById('mengaji-halaman').value.trim();
-      if (!jilid || !halaman) return alert('Jilid/Juz dan Halaman wajib diisi.');
+      if (!jilid || !halaman) return showToast('Jilid/Juz dan Halaman wajib diisi.', 'error');
 
       const payload = {
         date: activeDate,
@@ -1976,17 +1984,20 @@
       } else {
         db.mengaji.push({ id: 'mg-' + Date.now(), ...payload });
       }
-      saveDB();
+      saveDB(true);
       closeModal('modal-mengaji');
       refreshAllViews();
+      showToast('Catatan mengaji berhasil disimpan.', 'success');
     }
 
     function deleteMengaji(id) {
       if (!canEditOrDelete()) return;
-      if (!confirm('Hapus catatan mengaji ini?')) return;
-      db.mengaji = db.mengaji.filter(x => x.id !== id);
-      saveDB();
-      refreshAllViews();
+      showConfirmDialog('Hapus catatan mengaji ini?', () => {
+        db.mengaji = db.mengaji.filter(x => x.id !== id);
+        saveDB(true);
+        refreshAllViews();
+        showToast('Catatan mengaji dihapus.', 'info');
+      });
     }
 
     // ==================== MODUL LES & BIMBEL ====================
@@ -2030,8 +2041,11 @@
     }
 
     function openLesModal(editId = null) {
-      if (editId && !canEditOrDelete()) return alert('Hanya Admin yang dapat mengubah catatan lama.');
-      if (!editId && !canWrite()) return alert('Anda tidak memiliki izin mencatat data baru.');
+      if (editId && !canEditOrDelete()) {
+        showToast('User Guru tidak memiliki akses mengubah catatan lama.', 'warning');
+        return;
+      }
+      if (!editId && !canWrite()) return;
 
       const select = document.getElementById('les-murid-id');
       select.innerHTML = db.murid.map(m => `<option value="${m.id}">${m.code} - ${m.name}</option>`).join('');
@@ -2059,7 +2073,7 @@
       const editId = document.getElementById('les-edit-id').value;
       const mapel = document.getElementById('les-mapel').value.trim();
       const materi = document.getElementById('les-materi').value.trim();
-      if (!mapel || !materi) return alert('Mata Pelajaran dan Materi wajib diisi.');
+      if (!mapel || !materi) return showToast('Mata Pelajaran dan Materi wajib diisi.', 'error');
 
       const payload = {
         date: activeDate,
@@ -2078,20 +2092,23 @@
       } else {
         db.les.push({ id: 'ls-' + Date.now(), ...payload });
       }
-      saveDB();
+      saveDB(true);
       closeModal('modal-les');
       refreshAllViews();
+      showToast('Catatan les berhasil disimpan.', 'success');
     }
 
     function deleteLes(id) {
       if (!canEditOrDelete()) return;
-      if (!confirm('Hapus catatan les ini?')) return;
-      db.les = db.les.filter(x => x.id !== id);
-      saveDB();
-      refreshAllViews();
+      showConfirmDialog('Hapus catatan les ini?', () => {
+        db.les = db.les.filter(x => x.id !== id);
+        saveDB(true);
+        refreshAllViews();
+        showToast('Catatan les dihapus.', 'info');
+      });
     }
 
-    // ==================== MODUL LAPORAN & UNDUH LANGSUNG FILE PDF ====================
+    // ==================== MODUL LAPORAN & UNDUH LANGSUNG PDF ====================
     function populateReportSelectors() {
       const select = document.getElementById('report-murid-select');
       const allowed = getAccessibleMurid();
@@ -2175,17 +2192,22 @@
     }
 
     function triggerDirectBlobDownload(blob, filename) {
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => {
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }, 2000);
+      try {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.rel = 'noopener';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }, 2500);
+      } catch (e) {
+        showToast('Gagal memulai unduhan otomatis di peramban ini.', 'error');
+      }
     }
 
     function generateAndDownloadPDF() {
@@ -2201,13 +2223,12 @@
       const bothCodes = new Set(muridKeduanya.map(m => m.code));
       const detailAttKeduanya = attendanceRows.filter(r => bothCodes.has(r.code));
       const detailAttTunggal = attendanceRows.filter(r => !bothCodes.has(r.code));
-      const signerName = currentUser ? currentUser.name : 'Pengajar Taman Belajar';
 
       if (window.jspdf && window.jspdf.jsPDF) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-        // ==================== HALAMAN 1: LAPORAN KEHADIRAN ====================
+        // HALAMAN 1: KEHADIRAN
         doc.setFillColor(30, 58, 138);
         doc.rect(14, 12, 182, 18, 'F');
         doc.setTextColor(255, 255, 255);
@@ -2260,10 +2281,7 @@
             styles: { fontSize: 8.5, cellPadding: 2.2 },
             head: [['No', 'ID Murid', 'Nama Murid', 'Program', 'Hadir Mengaji', 'Hadir Les']],
             body: muridKeduanya.map((m, idx) => [
-              idx + 1,
-              m.code,
-              m.name,
-              m.program,
+              idx + 1, m.code, m.name, m.program,
               `${attendanceRows.filter(r => r.code === m.code && r.mengaji === 'Hadir').length} Sesi`,
               `${attendanceRows.filter(r => r.code === m.code && r.les === 'Hadir').length} Sesi`
             ])
@@ -2297,10 +2315,7 @@
             styles: { fontSize: 8.5, cellPadding: 2.2 },
             head: [['No', 'ID Murid', 'Nama Murid', 'Program', 'Hadir Mengaji', 'Hadir Les']],
             body: muridTunggal.map((m, idx) => [
-              idx + 1,
-              m.code,
-              m.name,
-              m.program,
+              idx + 1, m.code, m.name, m.program,
               `${attendanceRows.filter(r => r.code === m.code && r.mengaji === 'Hadir').length} Sesi`,
               `${attendanceRows.filter(r => r.code === m.code && r.les === 'Hadir').length} Sesi`
             ])
@@ -2319,7 +2334,7 @@
           });
         }
 
-        // ==================== HALAMAN 2: NILAI & EVALUASI ====================
+        // HALAMAN 2: NILAI & EVALUASI
         doc.addPage();
         doc.setFillColor(6, 95, 70);
         doc.rect(14, 12, 182, 18, 'F');
@@ -2413,85 +2428,18 @@
         doc.setFont('helvetica', 'bold');
         doc.text('Pengajar Taman Belajar', 165, signY + 4.5, { align: 'center' });
         doc.line(142, signY + 20, 188, signY + 20);
-        doc.text(signerName, 165, signY + 24.5, { align: 'center' });
+        doc.text('Admin / Pengajar', 165, signY + 24.5, { align: 'center' });
 
         const pdfBlob = doc.output('blob');
         triggerDirectBlobDownload(pdfBlob, filename);
 
-        statusEl.textContent = `File "${filename}" berhasil diunduh!`;
+        statusEl.textContent = `File "${filename}" berhasil dibuat dan diunduh! Cek folder Download perangkat Anda.`;
         statusEl.classList.remove('hidden');
+        showToast('Laporan PDF 2 halaman berhasil diunduh!', 'success');
         return;
       }
 
-      const fallbackBlob = buildMinimalOfflinePDF(monthStr, targetMuridList, attendanceRows, mengajiRows, lesRows);
-      triggerDirectBlobDownload(fallbackBlob, filename);
-      statusEl.textContent = `File "${filename}" berhasil diunduh (Mode Offline)!`;
-      statusEl.classList.remove('hidden');
-    }
-
-    function buildMinimalOfflinePDF(monthStr, targetMuridList, attendanceRows, mengajiRows, lesRows) {
-      const esc = (s) => String(s || '').replace(/[^\x20-\x7E]/g, ' ').replace(/([()\\])/g, '\\$1');
-      const page1Lines = [
-        `TAMAN BELAJAR - HALAMAN 1: LAPORAN KEHADIRAN (${monthStr})`,
-        `----------------------------------------------------------------------`,
-        ...targetMuridList.map((m, i) => {
-          const mg = attendanceRows.filter(r => r.code === m.code && r.mengaji === 'Hadir').length;
-          const ls = attendanceRows.filter(r => r.code === m.code && r.les === 'Hadir').length;
-          return `${i + 1}. [${m.code}] ${m.name} (${m.program}) -> Mengaji: ${mg}x | Les: ${ls}x`;
-        })
-      ];
-      const page2Lines = [
-        `TAMAN BELAJAR - HALAMAN 2: LAPORAN NILAI & EVALUASI (${monthStr})`,
-        `----------------------------------------------------------------------`,
-        `[NILAI MENGAJI]`,
-        ...(mengajiRows.length ? mengajiRows.map((x, i) => {
-          const m = db.murid.find(u => u.id === x.muridId);
-          return `${i + 1}. ${x.date} | ${m ? m.code : '-'} ${m ? m.name : '-'} | ${x.jilid} (${x.halaman}) | Skor: ${x.skor}`;
-        }) : ['Belum ada data nilai mengaji.']),
-        ``,
-        `[NILAI LES & BIMBEL]`,
-        ...(lesRows.length ? lesRows.map((x, i) => {
-          const m = db.murid.find(u => u.id === x.muridId);
-          return `${i + 1}. ${x.date} | ${m ? m.code : '-'} ${m ? m.name : '-'} | ${x.mapel}: ${x.materi} | Nilai: ${x.nilai}`;
-        }) : ['Belum ada data nilai les.'])
-      ];
-
-      const makeStream = (lines) => {
-        let y = 800;
-        let out = 'BT /F1 10 Tf ';
-        lines.forEach(line => {
-          out += `1 0 0 1 40 ${y} Tm (${esc(line)}) Tj `;
-          y -= 15;
-        });
-        out += 'ET';
-        return out;
-      };
-
-      const s1 = makeStream(page1Lines);
-      const s2 = makeStream(page2Lines);
-      const objects = [
-        '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj',
-        '2 0 obj << /Type /Pages /Kids [3 0 R 4 0 R] /Count 2 >> endobj',
-        '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 5 0 R /Resources << /Font << /F1 7 0 R >> >> >> endobj',
-        '4 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 6 0 R /Resources << /Font << /F1 7 0 R >> >> >> endobj',
-        `5 0 obj << /Length ${s1.length} >> stream\n${s1}\nendstream endobj`,
-        `6 0 obj << /Length ${s2.length} >> stream\n${s2}\nendstream endobj`,
-        '7 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj'
-      ];
-
-      let pdf = '%PDF-1.4\n';
-      const offsets = [0];
-      objects.forEach(obj => {
-        offsets.push(pdf.length);
-        pdf += obj + '\n';
-      });
-      const xrefPos = pdf.length;
-      pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
-      for (let i = 1; i <= objects.length; i++) {
-        pdf += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
-      }
-      pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF`;
-      return new Blob([pdf], { type: 'application/pdf' });
+      showToast('Library PDF sedang dimuat, pastikan koneksi internet aktif lalu coba kembali.', 'warning');
     }
 
     function copyWhatsAppReport() {
@@ -2517,55 +2465,173 @@
         text += `\n`;
       });
 
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text.trim()).then(() => {
-          alert('Rekap laporan berhasil disalin! Silakan tempel di WhatsApp.');
-        }).catch(() => prompt('Salin teks laporan berikut:', text.trim()));
-      } else {
-        prompt('Salin teks laporan berikut:', text.trim());
+      const finalText = text.trim();
+      const ta = document.createElement('textarea');
+      ta.value = finalText;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('Rekap laporan berhasil disalin! Silakan tempel di WhatsApp.', 'success');
+      } catch (e) {
+        showToast('Gagal menyalin otomatis. Coba unduh PDF.', 'warning');
       }
+      document.body.removeChild(ta);
     }
 
-    // ==================== PENGATURAN AKUN MANDIRI & KONTROL USER ADMIN ====================
+    // ==================== PERSETUJUAN ADMIN + CHECKLIST HAK AKSES USER ====================
+    function renderPendingApprovals() {
+      const pendingList = db.accounts.filter(a => a.status === 'pending');
+      const banner = document.getElementById('admin-pending-banner');
+      const badgeCount = document.getElementById('pending-badge-count');
+      const container = document.getElementById('pending-users-container');
+
+      badgeCount.textContent = pendingList.length;
+      if (pendingList.length > 0) {
+        banner.classList.remove('hidden');
+        document.getElementById('admin-pending-text').textContent = `${pendingList.length} Pendaftar Baru Menunggu Izin Admin`;
+      } else {
+        banner.classList.add('hidden');
+      }
+
+      if (pendingList.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 italic">Tidak ada permintaan pendaftaran baru.</p>`;
+        return;
+      }
+
+      container.innerHTML = pendingList.map(u => {
+        const isGuruReq = u.role === 'guru';
+        const defP = isGuruReq ? DEFAULT_PERMS_GURU : DEFAULT_PERMS_WALI;
+        return `
+          <div class="p-3 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2.5 text-xs">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${isGuruReq ? 'bg-emerald-600 text-white' : 'bg-sky-600 text-white'}">
+                  Calon User • ${isGuruReq ? 'Guru' : 'Orang Tua'}
+                </span>
+                <p class="font-extrabold text-slate-800 mt-1">${u.name}</p>
+                <p class="text-[11px] text-slate-600">User: <b>${u.username}</b> • PIN: <b>${u.pin}</b></p>
+                ${u.pendingChild ? `<p class="text-[11px] text-blue-800 mt-0.5">Anak: <b>${u.pendingChild.name}</b> (${u.pendingChild.program} • ${u.pendingChild.kelas || '-'})</p>` : ''}
+              </div>
+            </div>
+
+            <div class="bg-white p-2.5 rounded-xl border border-amber-200/80 space-y-1.5">
+              <p class="text-[10.5px] font-extrabold text-slate-700">Centang Modul yang Diizinkan:</p>
+              <div class="grid grid-cols-2 gap-1 text-[11px]">
+                <label class="flex items-center gap-1.5"><input type="checkbox" id="chk-${u.id}-les" ${defP.les ? 'checked' : ''} /> Les & Bimbel</label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" id="chk-${u.id}-mengaji" ${defP.mengaji ? 'checked' : ''} /> Mengaji</label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" id="chk-${u.id}-hadir" ${defP.hadir ? 'checked' : ''} /> Kehadiran</label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" id="chk-${u.id}-laporan" ${defP.laporan ? 'checked' : ''} /> Laporan PDF</label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" id="chk-${u.id}-murid" ${defP.murid ? 'checked' : ''} /> Data Murid</label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" id="chk-${u.id}-dokumentasi" ${defP.dokumentasi ? 'checked' : ''} /> Dokumentasi Foto</label>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="approvePendingUser('${u.id}')" class="py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl">
+                ✓ Setujui & Terbitkan ID
+              </button>
+              <button type="button" onclick="rejectPendingUser('${u.id}')" class="py-2 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded-xl">
+                ✕ Tolak
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function approvePendingUser(accId) {
+      if (!isSuperAdmin()) return;
+      const idx = db.accounts.findIndex(a => a.id === accId);
+      if (idx === -1) return;
+      const userObj = db.accounts[idx];
+
+      const perms = {
+        les: !!document.getElementById(`chk-${accId}-les`)?.checked,
+        mengaji: !!document.getElementById(`chk-${accId}-mengaji`)?.checked,
+        hadir: !!document.getElementById(`chk-${accId}-hadir`)?.checked,
+        laporan: !!document.getElementById(`chk-${accId}-laporan`)?.checked,
+        murid: !!document.getElementById(`chk-${accId}-murid`)?.checked,
+        dokumentasi: !!document.getElementById(`chk-${accId}-dokumentasi`)?.checked
+      };
+
+      const todayStr = new Date().toISOString().slice(0, 10);
+      let assignedCode = '';
+
+      if (userObj.role === 'guru') {
+        assignedCode = generateNextSequenceCode('GRU', todayStr);
+      } else {
+        assignedCode = generateNextSequenceCode('SOL', todayStr);
+        const childInfo = userObj.pendingChild || { name: 'Anak ' + userObj.name, program: 'Keduanya', kelas: '-' };
+        db.murid.push({
+          id: 'm-' + Date.now(),
+          code: assignedCode,
+          pin: userObj.pin,
+          name: childInfo.name,
+          program: childInfo.program,
+          kelas: childInfo.kelas,
+          wali: userObj.name,
+          regMonth: todayStr.slice(0, 7)
+        });
+        userObj.muridCode = assignedCode;
+      }
+
+      userObj.userCode = assignedCode;
+      userObj.status = 'approved';
+      userObj.permissions = perms;
+      delete userObj.pendingChild;
+
+      saveDB(true);
+      refreshAllViews();
+      showToast(`Akun ${userObj.name} disetujui! Nomor Induk: ${assignedCode}`, 'success');
+    }
+
+    function rejectPendingUser(accId) {
+      if (!isSuperAdmin()) return;
+      showConfirmDialog('Tolak dan hapus permintaan pendaftaran ini?', () => {
+        db.accounts = db.accounts.filter(a => a.id !== accId);
+        saveDB(true);
+        refreshAllViews();
+        showToast('Permintaan pendaftaran ditolak.', 'info');
+      });
+    }
+
+    // ==================== PENGATURAN AKUN MANDIRI & ADMIN ====================
     function saveSelfAccountChanges() {
       if (!currentUser) return;
       const newName = document.getElementById('self-acc-name').value.trim();
       const newUname = document.getElementById('self-acc-username').value.trim();
       const newPin = document.getElementById('self-acc-pin').value.trim();
 
-      if (!newName || !newUname || !newPin) return alert('Nama, Username, dan PIN tidak boleh kosong.');
+      if (!newName || !newUname || !newPin) return showToast('Nama, Username, dan PIN tidak boleh kosong.', 'error');
 
       const duplicate = db.accounts.some(a =>
         a.id !== currentUser.id && (a.username || '').toLowerCase() === newUname.toLowerCase()
       );
-      if (duplicate) return alert('Username tersebut sudah dipakai akun lain.');
+      if (duplicate) return showToast('Username tersebut sudah dipakai akun lain.', 'error');
 
       if (currentUser.isDirectMuridLogin) {
         const mIdx = db.murid.findIndex(m => m.id === currentUser.muridId);
         if (mIdx !== -1) db.murid[mIdx].pin = newPin;
-        const linkedAcc = db.accounts.find(a => a.role === 'wali' && (a.muridCode || '').toUpperCase() === (currentUser.muridCode || '').toUpperCase());
-        if (linkedAcc) {
-          linkedAcc.name = newName;
-          linkedAcc.username = newUname;
-          linkedAcc.pin = newPin;
-        } else {
-          db.accounts.push({
-            id: 'acc-' + Date.now(),
-            username: newUname,
-            pin: newPin,
-            name: newName,
-            role: 'wali',
-            indukCode: currentUser.muridCode,
-            muridCode: currentUser.muridCode,
-            permissions: getDefaultPermissions('wali')
-          });
-        }
+        db.accounts.push({
+          id: 'acc-' + Date.now(),
+          userCode: currentUser.muridCode,
+          username: newUname,
+          pin: newPin,
+          name: newName,
+          role: 'wali',
+          status: 'approved',
+          muridCode: currentUser.muridCode,
+          permissions: { ...DEFAULT_PERMS_WALI }
+        });
       } else {
         const idx = db.accounts.findIndex(a => a.id === currentUser.id);
         if (idx !== -1) {
           db.accounts[idx] = { ...db.accounts[idx], name: newName, username: newUname, pin: newPin };
         }
-        if (currentUser.role === 'wali' && currentUser.muridCode) {
+        if (isWali() && currentUser.muridCode) {
           const m = db.murid.find(x => (x.code || '').toUpperCase() === currentUser.muridCode.toUpperCase());
           if (m) m.pin = newPin;
         }
@@ -2575,30 +2641,30 @@
       currentUser.username = newUname;
       currentUser.pin = newPin;
       safeSetSession(SESSION_KEY, JSON.stringify(currentUser));
-      saveDB();
+      saveDB(true);
       initAppAfterLogin();
-      alert('Perubahan Username & PIN Anda berhasil disimpan!');
+      showToast('Perubahan Username & PIN Anda berhasil disimpan!', 'success');
     }
 
     function renderAccountList() {
       const container = document.getElementById('account-list-container');
-      container.innerHTML = db.accounts.map(acc => {
-        const roleTag = acc.role === 'superadmin' ? 'ADMIN' : (acc.role === 'guru' ? 'USER GURU' : 'USER ORTU');
-        const activePermCount = PERMISSION_ITEMS.filter(i => acc.permissions && acc.permissions[i.key]).length;
+      const approvedAccounts = db.accounts.filter(a => a.status !== 'pending');
+      container.innerHTML = approvedAccounts.map(acc => {
+        const roleLabel = acc.role === 'superadmin' ? 'Admin' : (acc.role === 'guru' ? 'User (Guru)' : 'User (Orang Tua)');
         return `
-          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-xs">
+          <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-xs">
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
-                <span class="px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 text-[9px] font-extrabold">${acc.indukCode || '-'}</span>
+                <span class="px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 text-[10px] font-extrabold">${acc.userCode || '-'}</span>
                 <p class="font-bold text-slate-800 truncate">${acc.name}</p>
               </div>
-              <p class="text-[10px] text-slate-600 mt-0.5">User: <b>${acc.username}</b> • PIN: <b>${acc.pin}</b></p>
-              <p class="text-[10px] text-slate-500 font-semibold">${roleTag} • ${activePermCount}/${PERMISSION_ITEMS.length} Izin Modul Aktif</p>
+              <p class="text-[10.5px] text-slate-600 mt-0.5">User: <b>${acc.username}</b> • PIN: <b>${acc.pin}</b></p>
+              <p class="text-[10px] text-indigo-700 font-bold uppercase">${roleLabel}</p>
             </div>
             <div class="flex items-center gap-1 shrink-0">
-              <button type="button" onclick="openAccountModal('${acc.id}')" class="px-2 py-1 rounded-lg bg-amber-100 text-amber-800 text-[10px] font-bold">Edit</button>
+              <button type="button" onclick="openAccountModal('${acc.id}')" class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 text-[10px] font-bold">Edit</button>
               ${acc.id !== currentUser.id ? `
-                <button type="button" onclick="deleteAccount('${acc.id}')" class="px-2 py-1 rounded-lg bg-rose-100 text-rose-700 text-[10px] font-bold">Hapus</button>
+                <button type="button" onclick="deleteAccount('${acc.id}')" class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-700 text-[10px] font-bold">Hapus</button>
               ` : ''}
             </div>
           </div>
@@ -2607,84 +2673,87 @@
     }
 
     function openAccountModal(editId = null) {
-      if (!isAdmin()) return;
+      if (!isSuperAdmin()) return;
       document.getElementById('acc-edit-id').value = editId || '';
       const muridSelect = document.getElementById('acc-murid-code');
       muridSelect.innerHTML = db.murid.map(m => `<option value="${m.code}">${m.code} - ${m.name}</option>`).join('');
 
       if (editId) {
-        const acc = normalizeAccount(db.accounts.find(a => a.id === editId));
-        document.getElementById('modal-account-title').textContent = 'Edit Akun & Hak Akses User';
+        const acc = db.accounts.find(a => a.id === editId);
+        document.getElementById('modal-account-title').textContent = 'Edit Akun User & Izin';
         document.getElementById('acc-role').value = acc.role;
-        document.getElementById('acc-induk-code').value = acc.indukCode || '';
+        document.getElementById('acc-user-code').value = acc.userCode || '';
         document.getElementById('acc-name').value = acc.name;
         document.getElementById('acc-username').value = acc.username;
         document.getElementById('acc-pin').value = acc.pin;
         if (acc.muridCode) muridSelect.value = acc.muridCode;
-        document.getElementById('acc-permissions-checklist').innerHTML = buildPermissionCheckboxesHTML('acc-perm', acc.permissions);
+        const p = acc.permissions || DEFAULT_PERMS_GURU;
+        ['les', 'mengaji', 'hadir', 'laporan', 'murid', 'dokumentasi'].forEach(k => {
+          document.getElementById('perm-' + k).checked = !!p[k];
+        });
       } else {
         document.getElementById('modal-account-title').textContent = 'Tambah Akun User Baru';
         document.getElementById('acc-role').value = 'guru';
-        document.getElementById('acc-induk-code').value = generateNextGuruCode(activeDate);
+        document.getElementById('acc-user-code').value = generateNextSequenceCode('GRU', activeDate);
         document.getElementById('acc-name').value = '';
         document.getElementById('acc-username').value = '';
         document.getElementById('acc-pin').value = '1234';
-        document.getElementById('acc-permissions-checklist').innerHTML = buildPermissionCheckboxesHTML('acc-perm', getDefaultPermissions('guru'));
+        ['les', 'mengaji', 'hadir', 'laporan', 'murid', 'dokumentasi'].forEach(k => {
+          document.getElementById('perm-' + k).checked = true;
+        });
       }
-      toggleAccMuridField();
+      onAccRoleChange();
       document.getElementById('modal-account').classList.remove('hidden');
     }
 
     function onAccRoleChange() {
       const role = document.getElementById('acc-role').value;
       const editId = document.getElementById('acc-edit-id').value;
-      toggleAccMuridField();
-      if (!editId) {
-        if (role === 'guru') {
-          document.getElementById('acc-induk-code').value = generateNextGuruCode(activeDate);
-        } else if (role === 'wali') {
-          document.getElementById('acc-induk-code').value = document.getElementById('acc-murid-code').value || generateNextMuridCode(activeDate);
-        } else {
-          document.getElementById('acc-induk-code').value = 'ADM2611001';
-        }
-        document.getElementById('acc-permissions-checklist').innerHTML = buildPermissionCheckboxesHTML('acc-perm', getDefaultPermissions(role));
-      }
-    }
-
-    function toggleAccMuridField() {
-      const role = document.getElementById('acc-role').value;
       document.getElementById('acc-murid-wrapper').classList.toggle('hidden', role !== 'wali');
-      document.getElementById('acc-permissions-section').classList.toggle('hidden', role === 'superadmin');
+      document.getElementById('acc-permissions-box').classList.toggle('hidden', role === 'superadmin');
+      if (!editId) {
+        const prefix = role === 'guru' ? 'GRU' : (role === 'superadmin' ? 'ADM' : 'SOL');
+        document.getElementById('acc-user-code').value = generateNextSequenceCode(prefix, activeDate);
+      }
     }
 
     function saveAccountForm() {
-      if (!isAdmin()) return;
+      if (!isSuperAdmin()) return;
       const editId = document.getElementById('acc-edit-id').value;
       const role = document.getElementById('acc-role').value;
       const muridCode = role === 'wali' ? document.getElementById('acc-murid-code').value : null;
-      const indukCode = role === 'wali' ? muridCode : (document.getElementById('acc-induk-code').value || generateNextGuruCode(activeDate));
+      const userCode = role === 'wali' ? muridCode : (document.getElementById('acc-user-code').value.trim().toUpperCase() || generateNextSequenceCode('GRU', activeDate));
       const name = document.getElementById('acc-name').value.trim();
       const username = document.getElementById('acc-username').value.trim();
       const pin = document.getElementById('acc-pin').value.trim();
-      const permissions = role === 'superadmin' ? getDefaultPermissions('superadmin') : readPermissionCheckboxes('acc-perm');
 
-      if (!name || !username || !pin) return alert('Nama, Username, dan PIN wajib diisi.');
-
+      if (!name || !username || !pin) return showToast('Nama, Username, dan PIN wajib diisi.', 'error');
       if (db.accounts.some(a => a.id !== editId && (a.username || '').toLowerCase() === username.toLowerCase())) {
-        return alert('Username sudah terdaftar.');
+        return showToast('Username sudah terdaftar.', 'error');
       }
+
+      const permissions = role === 'superadmin'
+        ? { les: true, mengaji: true, hadir: true, laporan: true, murid: true, dokumentasi: true }
+        : {
+            les: document.getElementById('perm-les').checked,
+            mengaji: document.getElementById('perm-mengaji').checked,
+            hadir: document.getElementById('perm-hadir').checked,
+            laporan: document.getElementById('perm-laporan').checked,
+            murid: document.getElementById('perm-murid').checked,
+            dokumentasi: document.getElementById('perm-dokumentasi').checked
+          };
 
       if (editId) {
         const idx = db.accounts.findIndex(a => a.id === editId);
         if (idx !== -1) {
-          db.accounts[idx] = { ...db.accounts[idx], role, indukCode, muridCode, name, username, pin, permissions };
+          db.accounts[idx] = { ...db.accounts[idx], role, userCode, muridCode, name, username, pin, status: 'approved', permissions };
           if (editId === currentUser.id) {
-            currentUser = normalizeAccount(db.accounts[idx]);
+            currentUser = { ...db.accounts[idx] };
             safeSetSession(SESSION_KEY, JSON.stringify(currentUser));
           }
         }
       } else {
-        db.accounts.push({ id: 'acc-' + Date.now(), username, pin, name, role, indukCode, muridCode, permissions });
+        db.accounts.push({ id: 'acc-' + Date.now(), userCode, username, pin, name, role, status: 'approved', muridCode, permissions });
       }
 
       if (role === 'wali' && muridCode) {
@@ -2692,113 +2761,32 @@
         if (m) m.pin = pin;
       }
 
-      saveDB();
+      saveDB(true);
       closeModal('modal-account');
       initAppAfterLogin();
+      showToast('Akun user berhasil disimpan.', 'success');
     }
 
     function deleteAccount(id) {
-      if (!isAdmin()) return;
-      if (!confirm('Hapus akun user ini?')) return;
-      db.accounts = db.accounts.filter(a => a.id !== id);
-      saveDB();
-      renderAccountList();
+      if (!isSuperAdmin()) return;
+      showConfirmDialog('Hapus akun user ini?', () => {
+        db.accounts = db.accounts.filter(a => a.id !== id);
+        saveDB(true);
+        renderAccountList();
+        showToast('Akun user dihapus.', 'info');
+      });
     }
 
-    // ==================== FIREBASE REALTIME DATABASE AUTO-SYNC PERMANEN ====================
-    let isSyncingNow = false;
-    let lastLocalMutationAt = 0;
-
-    function getFirebaseEndpoint() {
-      return `${FIREBASE_DB_URL.replace(/\/+$/, '')}/taman_belajar_db.json`;
-    }
-
-    async function pushToFirebase(showAlert = false) {
-      const endpoint = getFirebaseEndpoint();
-      lastLocalMutationAt = Date.now();
-      isSyncingNow = true;
-      try {
-        const res = await fetch(endpoint, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(db)
-        });
-        if (res.ok) {
-          const badge = document.getElementById('sync-status-badge');
-          if (badge) {
-            badge.textContent = 'Auto-Sync Aktif';
-            badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700';
-          }
-          if (showAlert) alert('Data berhasil disinkronkan ke Firebase!');
-        }
-      } catch (err) {
-        const badge = document.getElementById('sync-status-badge');
-        if (badge) {
-          badge.textContent = 'Mode Offline';
-          badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700';
-        }
-      } finally {
-        isSyncingNow = false;
-      }
-    }
-
-    async function pullFromFirebase(showAlert = false) {
-      if (isSyncingNow) return;
-      if (!showAlert && (Date.now() - lastLocalMutationAt < 3000)) return;
-      const endpoint = getFirebaseEndpoint();
-      try {
-        const res = await fetch(endpoint, { cache: 'no-store' });
-        const cloudData = await res.json();
-        if (cloudData && cloudData.murid) {
-          const normalized = normalizeDB(cloudData);
-          const currentStr = JSON.stringify(db);
-          const incomingStr = JSON.stringify(normalized);
-          if (currentStr !== incomingStr) {
-            db = normalized;
-            memoryFallbackDB = db;
-            safeSetStorage(STORAGE_KEY, incomingStr);
-            if (currentUser) {
-              const updatedSelf = db.accounts.find(a => a.id === currentUser.id);
-              if (updatedSelf) {
-                currentUser = normalizeAccount(updatedSelf);
-                safeSetSession(SESSION_KEY, JSON.stringify(currentUser));
-                initAppAfterLogin();
-              } else {
-                refreshAllViews();
-              }
-            }
-          }
-          const badge = document.getElementById('sync-status-badge');
-          if (badge) {
-            badge.textContent = 'Auto-Sync Aktif';
-            badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700';
-          }
-        } else if (cloudData === null) {
-          await pushToFirebase(false);
-        }
-      } catch (err) {
-        // Tetap berjalan lancar menggunakan penyimpanan lokal saat offline
-      }
-    }
-
-    // Sinkronisasi otomatis setiap 5 detik dan saat aplikasi kembali aktif
-    setInterval(() => {
-      if (document.visibilityState === 'visible') pullFromFirebase(false);
-    }, 5000);
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') pullFromFirebase(false);
-    });
-
-    // ==================== BACKUP JSON (EKSKLUSIF SUPER ADMIN) ====================
+    // ==================== BACKUP & RESTORE JSON (HANYA ADMIN) ====================
     function exportBackupJSON() {
-      if (!isAdmin()) return alert('Hanya Admin yang dapat melakukan backup data.');
+      if (!isSuperAdmin()) return showToast('Hanya Admin yang dapat melakukan backup database.', 'warning');
       const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
       triggerDirectBlobDownload(blob, `backup_taman_belajar_${activeDate}.json`);
+      showToast('File cadangan JSON berhasil diunduh.', 'success');
     }
 
     function importBackupJSON(event) {
-      if (!isAdmin()) return alert('Hanya Admin yang dapat memulihkan database.');
+      if (!isSuperAdmin()) return showToast('Hanya Admin yang dapat memulihkan database.', 'warning');
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
@@ -2809,9 +2797,9 @@
           db = normalizeDB(imported);
           saveDB(true);
           refreshAllViews();
-          alert('Data cadangan berhasil dipulihkan & disinkronkan ke cloud!');
+          showToast('Data cadangan berhasil dipulihkan dan disinkronkan ke Firebase!', 'success');
         } catch (err) {
-          alert('File JSON tidak valid.');
+          showToast('File JSON tidak valid.', 'error');
         }
       };
       reader.readAsText(file);
@@ -2821,15 +2809,13 @@
       document.getElementById(id).classList.add('hidden');
     }
 
-    // ==================== SERVICE WORKER PWA AMAN ====================
-    if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
-      });
-    }
+    // ==================== INISIALISASI & AUTO-SYNC PERIODIK ====================
+    pullFromFirebase();
+    setInterval(pullFromFirebase, 5000);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) pullFromFirebase();
+    });
 
-    // ==================== INISIALISASI ====================
-    pullFromFirebase(false);
     initAppAfterLogin();
   </script>
 </body>
