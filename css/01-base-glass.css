@@ -1,0 +1,59 @@
+﻿/* File: css/01-base-glass.css | Build: V 0.06.11.24.2125 */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bg-strong: rgba(255, 255, 255, 0.86);
+  --glass-border: rgba(255, 255, 255, 0.88);
+  --glass-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --mesh-c1: rgba(59, 130, 246, 0.22);
+  --mesh-c2: rgba(168, 85, 247, 0.18);
+  --mesh-c3: rgba(16, 185, 129, 0.16);
+  --mesh-c4: rgba(251, 191, 36, 0.16);
+  --accent-main: #2563eb;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+}
+
+html, body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  height: 100%;
+  overscroll-behavior-y: contain;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.liquid-mesh-bg {
+  background-color: #eef3fb;
+  background-image:
+    radial-gradient(at 8% 12%, var(--mesh-c1) 0px, transparent 52%),
+    radial-gradient(at 92% 16%, var(--mesh-c2) 0px, transparent 50%),
+    radial-gradient(at 18% 88%, var(--mesh-c3) 0px, transparent 52%),
+    radial-gradient(at 86% 82%, var(--mesh-c4) 0px, transparent 50%),
+    linear-gradient(180deg, #f5f8fd 0%, #e9eff8 100%);
+  background-attachment: fixed;
+}
+
+.liquid-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(22px) saturate(165%);
+  -webkit-backdrop-filter: blur(22px) saturate(165%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.liquid-glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.glass-input:focus {
+  outline: none;
+  border-color: var(--accent-main);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}

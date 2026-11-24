@@ -1,384 +1,307 @@
-// ============================================================================
-// TAMAN BELAJAR - MODULE: LAPORAN PDF (2 HALAMAN) & WHATSAPP
-// ============================================================================
-
-function populateReportSelectors() {
-  const select = document.getElementById('report-murid-select');
-  if (!select || !window.TBStore.db) return;
-
-  const allowed = getAccessibleMurid();
-  const prevVal = select.value;
-
-  let options = !isWali() ? `<option value="ALL">Semua Murid (${allowed.length} Anak)</option>` : '';
-  options += allowed.map(m => `<option value="${m.id}">${m.code} - ${m.name}</option>`).join('');
-  select.innerHTML = options;
-
-  if (prevVal && Array.from(select.options).some(o => o.value === prevVal)) {
-    select.value = prevVal;
-  }
+﻿// File: js/modules/laporan-pdf.js | Build: V 0.06.11.24.2152
+function getReportMonthValue() {
+  const inp = document.getElementById('report-month-input');
+  if (inp && inp.value) return inp.value;
+  const active = window.TBStore.activeDate || new Date().toISOString().slice(0, 10);
+  const ym = active.slice(0, 7);
+  if (inp) inp.value = ym;
+  return ym;
 }
 
-function getFilteredReportData() {
+function buildStudentMonthlySummary(murid, monthStr) {
   const db = window.TBStore.db;
-  const selectedId = document.getElementById('report-murid-select')?.value || 'ALL';
-  const monthStr = document.getElementById('report-month-input')?.value || window.TBStore.activeDate.slice(0, 7);
-  const allowedMurid = getAccessibleMurid();
+  const mId = murid.id;
 
-  const targetMuridList = (selectedId === 'ALL' && !isWali())
-    ? allowedMurid
-    : allowedMurid.filter(m => m.id === selectedId);
-
-  const targetIds = new Set(targetMuridList.map(m => m.id));
-  const datesInMonth = Object.keys(db.attendance || {}).filter(d => d.startsWith(monthStr)).sort();
-  const attendanceRows = [];
-
-  datesInMonth.forEach(dateKey => {
-    const rec = db.attendance[dateKey] || { mengaji: [], les: [] };
-    targetMuridList.forEach(m => {
-      const hMengaji = (rec.mengaji || []).includes(m.id);
-      const hLes = (rec.les || []).includes(m.id);
-      if (hMengaji || hLes) {
-        attendanceRows.push({
-          date: dateKey,
-          code: m.code,
-          name: m.name,
-          mengaji: hMengaji ? 'Hadir' : '-',
-          les: hLes ? 'Hadir' : '-'
-        });
-      }
-    });
+  let hadirMengaji = 0;
+  let hadirLes = 0;
+  Object.keys(db.attendance || {}).forEach(dateKey => {
+    if (dateKey.startsWith(monthStr)) {
+      const day = db.attendance[dateKey] || {};
+      if (Array.isArray(day.mengaji) && day.mengaji.includes(mId)) hadirMengaji++;
+      if (Array.isArray(day.les) && day.les.includes(mId)) hadirLes++;
+    }
   });
 
-  const mengajiRows = db.mengaji
-    .filter(x => (x.date || '').startsWith(monthStr) && targetIds.has(x.muridId))
-    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  const mengajiItems = (db.mengaji || []).filter(x => x.muridId === mId && String(x.date || x.ts || '').startsWith(monthStr));
+  const lesItems = (db.les || []).filter(x => x.muridId === mId && String(x.date || x.ts || '').startsWith(monthStr));
 
-  const lesRows = db.les
-    .filter(x => (x.date || '').startsWith(monthStr) && targetIds.has(x.muridId))
-    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  const lesNums = lesItems.map(x => Number(x.nilai)).filter(n => !isNaN(n));
+  const avgLes = lesNums.length > 0 ? Math.round(lesNums.reduce((a, b) => a + b, 0) / lesNums.length) : null;
 
-  return { monthStr, targetMuridList, attendanceRows, mengajiRows, lesRows };
+  const mgjNums = mengajiItems.map(x => Number(x.skor)).filter(n => !isNaN(n) && n > 0);
+  const avgMengaji = mgjNums.length > 0 ? Math.round(mgjNums.reduce((a, b) => a + b, 0) / mgjNums.length) : null;
+
+  return {
+    murid,
+    monthStr,
+    hadirMengaji,
+    hadirLes,
+    mengajiItems,
+    lesItems,
+    avgLes,
+    avgMengaji
+  };
 }
 
-function renderReportPreview() {
-  const container = document.getElementById('report-preview-card');
-  if (!container || !window.TBStore.db) return;
+function renderReportOptionsAndPreview() {
+  const sel = document.getElementById('report-murid-select');
+  if (!sel) return;
 
-  const { monthStr, targetMuridList, attendanceRows, mengajiRows, lesRows } = getFilteredReportData();
-  const titleName = targetMuridList.length === 1
-    ? `${targetMuridList[0].name} (${targetMuridList[0].code})`
-    : `Rekap Seluruh Murid (${targetMuridList.length} Anak)`;
-
-  container.innerHTML = `
-    <div class="border-b border-slate-200/70 pb-2.5">
-      <p class="text-[10px] font-bold uppercase tracking-wider text-purple-700">Pratinjau Laporan • Periode ${monthStr}</p>
-      <p class="text-sm font-extrabold text-slate-800 mt-0.5">${titleName}</p>
-    </div>
-    <div class="grid grid-cols-3 gap-2 text-center">
-      <div class="p-2 rounded-xl bg-amber-100/70 border border-amber-200/80">
-        <p class="text-sm font-extrabold text-amber-800">${attendanceRows.length}</p>
-        <p class="text-[10px] text-slate-600">Log Hadir</p>
-      </div>
-      <div class="p-2 rounded-xl bg-emerald-100/70 border border-emerald-200/80">
-        <p class="text-sm font-extrabold text-emerald-800">${mengajiRows.length}</p>
-        <p class="text-[10px] text-slate-600">Nilai Mengaji</p>
-      </div>
-      <div class="p-2 rounded-xl bg-blue-100/70 border border-blue-200/80">
-        <p class="text-sm font-extrabold text-blue-800">${lesRows.length}</p>
-        <p class="text-[10px] text-slate-600">Nilai Les</p>
-      </div>
-    </div>
-    <p class="text-[11px] text-slate-600 leading-relaxed">
-      PDF A4 (2 Halaman): <b>Hal. 1</b> Kehadiran &amp; <b>Hal. 2</b> Rekap Nilai Mengaji &amp; Les.
-    </p>
-  `;
-}
-
-function triggerDirectBlobDownload(blob, filename) {
-  try {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.rel = 'noopener';
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    setTimeout(() => {
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }, 2500);
-  } catch (e) {
-    showToast('Gagal memulai unduhan otomatis di peramban ini.', 'error');
-  }
-}
-
-function generateAndDownloadPDF() {
-  const statusEl = document.getElementById('pdf-status-msg');
-  const { monthStr, targetMuridList, attendanceRows, mengajiRows, lesRows } = getFilteredReportData();
-  const isSingle = targetMuridList.length === 1;
-  const singleMurid = isSingle ? targetMuridList[0] : null;
-  const fileLabel = isSingle ? `${singleMurid.code}_${singleMurid.name.replace(/\s+/g, '_')}` : 'Semua_Murid';
-  const filename = `Laporan_Taman_Belajar_${fileLabel}_${monthStr}.pdf`;
-
-  const muridKeduanya = targetMuridList.filter(m => m.program === 'Keduanya');
-  const muridTunggal = targetMuridList.filter(m => m.program !== 'Keduanya');
-  const bothCodes = new Set(muridKeduanya.map(m => m.code));
-  const detailAttKeduanya = attendanceRows.filter(r => bothCodes.has(r.code));
-  const detailAttTunggal = attendanceRows.filter(r => !bothCodes.has(r.code));
-
-  if (window.jspdf && window.jspdf.jsPDF) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-    // HALAMAN 1: KEHADIRAN
-    doc.setFillColor(30, 58, 138);
-    doc.rect(14, 12, 182, 18, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('TAMAN BELAJAR', 18, 20);
-    doc.setFontSize(8.5);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Belajar • Mengaji • Berkembang', 18, 25.5);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text('HALAMAN 1 — LAPORAN KEHADIRAN', 192, 20, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Periode: ${monthStr}`, 192, 25.5, { align: 'right' });
-
-    let currentY = 36;
-    doc.setTextColor(15, 23, 42);
-
-    if (isSingle) {
-      doc.autoTable({
-        startY: currentY,
-        theme: 'grid',
-        styles: { fontSize: 8.5, cellPadding: 2.2 },
-        body: [
-          ['Nomor Murid', singleMurid.code, 'Program', singleMurid.program],
-          ['Nama Lengkap', singleMurid.name, 'Wali Murid', singleMurid.wali || '-']
-        ],
-        columnStyles: {
-          0: { fontStyle: 'bold', fillColor: [241, 245, 249], cellWidth: 32 },
-          1: { fontStyle: 'bold', textColor: [29, 78, 216], cellWidth: 59 },
-          2: { fontStyle: 'bold', fillColor: [241, 245, 249], cellWidth: 30 },
-          3: { cellWidth: 61 }
-        }
-      });
-      currentY = doc.lastAutoTable.finalY + 6;
-    }
-
-    if (muridKeduanya.length > 0) {
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(67, 56, 202);
-      doc.text('A. Kehadiran Program Terpadu (Mengaji & Les)', 14, currentY);
-      currentY += 2.5;
-
-      doc.autoTable({
-        startY: currentY,
-        theme: 'grid',
-        headStyles: { fillColor: [67, 56, 202], textColor: 255, fontSize: 8.5 },
-        styles: { fontSize: 8.5, cellPadding: 2.2 },
-        head: [['No', 'ID Murid', 'Nama Murid', 'Program', 'Hadir Mengaji', 'Hadir Les']],
-        body: muridKeduanya.map((m, idx) => [
-          idx + 1, m.code, m.name, m.program,
-          `${attendanceRows.filter(r => r.code === m.code && r.mengaji === 'Hadir').length} Sesi`,
-          `${attendanceRows.filter(r => r.code === m.code && r.les === 'Hadir').length} Sesi`
-        ])
-      });
-      currentY = doc.lastAutoTable.finalY + 4;
-
-      doc.autoTable({
-        startY: currentY,
-        theme: 'grid',
-        headStyles: { fillColor: [224, 231, 255], textColor: [30, 27, 75], fontSize: 8 },
-        styles: { fontSize: 8, cellPadding: 2 },
-        head: [['No', 'Tanggal', 'ID Murid', 'Nama Murid', 'Sesi Mengaji', 'Sesi Les']],
-        body: detailAttKeduanya.length > 0
-          ? detailAttKeduanya.map((r, idx) => [idx + 1, r.date, r.code, r.name, r.mengaji, r.les])
-          : [['-', '-', '-', 'Belum ada log kehadiran program terpadu pada periode ini', '-', '-']]
-      });
-      currentY = doc.lastAutoTable.finalY + 7;
-    }
-
-    if (muridTunggal.length > 0) {
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(15, 118, 110);
-      doc.text(`${muridKeduanya.length > 0 ? 'B.' : 'A.'} Kehadiran Program Tunggal (Mengaji Saja / Les Saja)`, 14, currentY);
-      currentY += 2.5;
-
-      doc.autoTable({
-        startY: currentY,
-        theme: 'grid',
-        headStyles: { fillColor: [15, 118, 110], textColor: 255, fontSize: 8.5 },
-        styles: { fontSize: 8.5, cellPadding: 2.2 },
-        head: [['No', 'ID Murid', 'Nama Murid', 'Program', 'Hadir Mengaji', 'Hadir Les']],
-        body: muridTunggal.map((m, idx) => [
-          idx + 1, m.code, m.name, m.program,
-          `${attendanceRows.filter(r => r.code === m.code && r.mengaji === 'Hadir').length} Sesi`,
-          `${attendanceRows.filter(r => r.code === m.code && r.les === 'Hadir').length} Sesi`
-        ])
-      });
-      currentY = doc.lastAutoTable.finalY + 4;
-
-      doc.autoTable({
-        startY: currentY,
-        theme: 'grid',
-        headStyles: { fillColor: [204, 251, 241], textColor: [19, 78, 74], fontSize: 8 },
-        styles: { fontSize: 8, cellPadding: 2 },
-        head: [['No', 'Tanggal', 'ID Murid', 'Nama Murid', 'Sesi Mengaji', 'Sesi Les']],
-        body: detailAttTunggal.length > 0
-          ? detailAttTunggal.map((r, idx) => [idx + 1, r.date, r.code, r.name, r.mengaji, r.les])
-          : [['-', '-', '-', 'Belum ada log kehadiran program tunggal pada periode ini', '-', '-']]
-      });
-    }
-
-    // HALAMAN 2: NILAI & EVALUASI
-    doc.addPage();
-    doc.setFillColor(6, 95, 70);
-    doc.rect(14, 12, 182, 18, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('TAMAN BELAJAR', 18, 20);
-    doc.setFontSize(8.5);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Evaluasi Capaian Belajar & Mengaji', 18, 25.5);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text('HALAMAN 2 — LAPORAN NILAI & EVALUASI', 192, 20, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Periode: ${monthStr}`, 192, 25.5, { align: 'right' });
-
-    let page2Y = 36;
-
-    if (muridKeduanya.length > 0) {
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(67, 56, 202);
-      doc.text('Rekap Gabungan Murid Program Terpadu (Mengaji & Les)', 14, page2Y);
-      page2Y += 2.5;
-
-      doc.autoTable({
-        startY: page2Y,
-        theme: 'grid',
-        headStyles: { fillColor: [67, 56, 202], textColor: 255, fontSize: 8 },
-        styles: { fontSize: 8, cellPadding: 2.2 },
-        head: [['No', 'ID Murid', 'Nama Murid', 'Capaian Mengaji Terakhir', 'Rata Mengaji', 'Rata Les']],
-        body: muridKeduanya.map((m, idx) => {
-          const mMg = mengajiRows.filter(x => x.muridId === m.id);
-          const mLs = lesRows.filter(x => x.muridId === m.id);
-          const avgMg = mMg.length ? Math.round(mMg.reduce((s, x) => s + (Number(x.skor) || 0), 0) / mMg.length) : '-';
-          const avgLs = mLs.length ? Math.round(mLs.reduce((s, x) => s + (Number(x.nilai) || 0), 0) / mLs.length) : '-';
-          const lastMg = mMg.length ? `${mMg[mMg.length - 1].jilid} (${mMg[mMg.length - 1].halaman})` : '-';
-          return [idx + 1, m.code, m.name, lastMg, avgMg, avgLs];
-        })
-      });
-      page2Y = doc.lastAutoTable.finalY + 7;
-    }
-
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(6, 95, 70);
-    doc.text('A. Tabel Perkembangan & Nilai Mengaji', 14, page2Y);
-    page2Y += 2.5;
-
-    doc.autoTable({
-      startY: page2Y,
-      theme: 'grid',
-      headStyles: { fillColor: [6, 95, 70], textColor: 255, fontSize: 8 },
-      styles: { fontSize: 8, cellPadding: 2.2 },
-      head: [['No', 'Tanggal', 'ID Murid', 'Nama Murid', 'Bacaan (Jilid / Hal)', 'Skor', 'Predikat']],
-      body: mengajiRows.length > 0
-        ? mengajiRows.map((item, idx) => {
-            const m = window.TBStore.db.murid.find(x => x.id === item.muridId);
-            return [idx + 1, item.date, m ? m.code : '-', m ? m.name : '-', `${item.jilid} (${item.halaman})`, item.skor || '-', item.nilai];
-          })
-        : [['-', '-', '-', 'Tidak ada catatan nilai mengaji pada periode ini', '-', '-', '-']]
-    });
-    page2Y = doc.lastAutoTable.finalY + 7;
-
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(30, 58, 138);
-    doc.text('B. Tabel Nilai Les & Bimbingan Belajar', 14, page2Y);
-    page2Y += 2.5;
-
-    doc.autoTable({
-      startY: page2Y,
-      theme: 'grid',
-      headStyles: { fillColor: [30, 58, 138], textColor: 255, fontSize: 8 },
-      styles: { fontSize: 8, cellPadding: 2.2 },
-      head: [['No', 'Tanggal', 'ID Murid', 'Nama Murid', 'Mata Pelajaran', 'Materi Bahasan', 'Nilai']],
-      body: lesRows.length > 0
-        ? lesRows.map((item, idx) => {
-            const m = window.TBStore.db.murid.find(x => x.id === item.muridId);
-            return [idx + 1, item.date, m ? m.code : '-', m ? m.name : '-', item.mapel, item.materi, item.nilai];
-          })
-        : [['-', '-', '-', 'Tidak ada catatan nilai les pada periode ini', '-', '-', '-']]
-    });
-
-    const signY = Math.min(doc.lastAutoTable.finalY + 14, 262);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(15, 23, 42);
-    doc.text('Mengetahui,', 165, signY, { align: 'center' });
-    doc.setFont('helvetica', 'bold');
-    doc.text('Pengajar Taman Belajar', 165, signY + 4.5, { align: 'center' });
-    doc.line(142, signY + 20, 188, signY + 20);
-    doc.text('Admin / Pengajar', 165, signY + 24.5, { align: 'center' });
-
-    const pdfBlob = doc.output('blob');
-    triggerDirectBlobDownload(pdfBlob, filename);
-
-    if (statusEl) {
-      statusEl.textContent = `File "${filename}" berhasil dibuat dan diunduh!`;
-      statusEl.classList.remove('hidden');
-    }
-    showToast('Laporan PDF 2 halaman berhasil diunduh!', 'success');
+  const kids = getAccessibleMurid();
+  if (kids.length === 0) {
+    sel.innerHTML = `<option value="">Tidak ada data murid</option>`;
+    const card = document.getElementById('report-preview-card');
+    if (card) card.innerHTML = `<p class="text-slate-500">Belum ada data murid untuk ditampilkan.</p>`;
     return;
   }
 
-  showToast('Library PDF sedang dimuat, pastikan koneksi internet aktif.', 'warning');
+  const prevVal = sel.value;
+  sel.innerHTML = kids.map(m =>
+    `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)} (${escapeHtml(m.code)})</option>`
+  ).join('');
+  if (prevVal && kids.some(k => k.id === prevVal)) {
+    sel.value = prevVal;
+  }
+
+  getReportMonthValue();
+  renderReportPreview();
+}
+
+function renderReportPreview() {
+  const sel = document.getElementById('report-murid-select');
+  const card = document.getElementById('report-preview-card');
+  if (!sel || !card) return;
+
+  const murid = getMuridById(sel.value);
+  if (!murid) {
+    card.innerHTML = `<p class="text-slate-500">Pilih murid terlebih dahulu.</p>`;
+    return;
+  }
+
+  const monthStr = getReportMonthValue();
+  const s = buildStudentMonthlySummary(murid, monthStr);
+
+  card.innerHTML = `
+    <div class="flex items-center justify-between border-b border-slate-200/70 pb-2">
+      <div>
+        <h3 class="text-sm font-extrabold text-slate-800">${escapeHtml(murid.name)}</h3>
+        <p class="text-[11px] text-slate-500">${escapeHtml(murid.code)} • ${escapeHtml(murid.kelas || '-')} • Periode ${escapeHtml(monthStr)}</p>
+      </div>
+      <span class="px-2.5 py-1 rounded-xl bg-blue-100 text-blue-800 text-[10px] font-extrabold">Rata-rata Les: ${s.avgLes !== null ? s.avgLes : '-'}</span>
+    </div>
+
+    <div class="grid grid-cols-2 gap-2 text-center">
+      <div class="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-200/70">
+        <p class="text-[10px] font-bold text-emerald-800">Hadir Mengaji</p>
+        <p class="text-base font-extrabold text-emerald-950">${s.hadirMengaji} Sesi</p>
+      </div>
+      <div class="p-2.5 rounded-xl bg-blue-50/80 border border-blue-200/70">
+        <p class="text-[10px] font-bold text-blue-800">Hadir Les</p>
+        <p class="text-base font-extrabold text-blue-950">${s.hadirLes} Sesi</p>
+      </div>
+    </div>
+
+    <div class="space-y-1.5">
+      <p class="text-[11px] font-extrabold text-slate-700">Catatan Mengaji (${s.mengajiItems.length})</p>
+      ${s.mengajiItems.length === 0
+        ? `<p class="text-[11px] text-slate-500">Belum ada catatan mengaji pada bulan ini.</p>`
+        : s.mengajiItems.slice(0, 5).map(x => `
+            <div class="p-2 rounded-xl bg-white/65 text-[11px] flex justify-between gap-2">
+              <span class="font-semibold text-slate-800">${escapeHtml(x.jilid)} (${escapeHtml(x.halaman)})</span>
+              <span class="font-bold text-emerald-700 shrink-0">${escapeHtml(x.nilai || '')}</span>
+            </div>
+          `).join('')
+      }
+    </div>
+
+    <div class="space-y-1.5">
+      <p class="text-[11px] font-extrabold text-slate-700">Catatan Les (${s.lesItems.length})</p>
+      ${s.lesItems.length === 0
+        ? `<p class="text-[11px] text-slate-500">Belum ada catatan les pada bulan ini.</p>`
+        : s.lesItems.slice(0, 5).map(x => `
+            <div class="p-2 rounded-xl bg-white/65 text-[11px] flex justify-between gap-2">
+              <span class="font-semibold text-slate-800">${escapeHtml(x.mapel)}: ${escapeHtml(x.materi)}</span>
+              <span class="font-bold text-blue-700 shrink-0">Nilai ${escapeHtml(x.nilai)}</span>
+            </div>
+          `).join('')
+      }
+    </div>
+  `;
+}
+
+function buildWhatsAppText(s) {
+  const lines = [
+    `*LAPORAN PERKEMBANGAN TAMAN BELAJAR*`,
+    `Periode: *${s.monthStr}*`,
+    `Nama Murid: *${s.murid.name}* (${s.murid.code})`,
+    `Kelas: ${s.murid.kelas || '-'}`,
+    ``,
+    `*Rekap Kehadiran:*`,
+    `- Mengaji: ${s.hadirMengaji} sesi`,
+    `- Les & Bimbel: ${s.hadirLes} sesi`,
+    ``,
+    `*Capaian Mengaji (${s.mengajiItems.length} catatan):*`
+  ];
+
+  if (s.mengajiItems.length === 0) {
+    lines.push(`- Belum ada catatan bulan ini.`);
+  } else {
+    s.mengajiItems.slice(0, 6).forEach(x => {
+      lines.push(`- [${x.date || '-'}] ${x.jilid} (${x.halaman}) — ${x.nilai || '-'}${x.catatan ? ` (${x.catatan})` : ''}`);
+    });
+  }
+
+  lines.push(``);
+  lines.push(`*Capaian Les (${s.lesItems.length} catatan${s.avgLes !== null ? `, Rata-rata: ${s.avgLes}` : ''}):*`);
+  if (s.lesItems.length === 0) {
+    lines.push(`- Belum ada catatan bulan ini.`);
+  } else {
+    s.lesItems.slice(0, 6).forEach(x => {
+      lines.push(`- [${x.date || '-'}] ${x.mapel}: ${x.materi} — Nilai *${x.nilai}*${x.catatan ? ` (${x.catatan})` : ''}`);
+    });
+  }
+
+  return lines.join('\n');
 }
 
 function copyWhatsAppReport() {
-  const { monthStr, targetMuridList, attendanceRows, mengajiRows, lesRows } = getFilteredReportData();
-  let text = `*LAPORAN PERKEMBANGAN TAMAN BELAJAR*\nPeriode: ${monthStr}\n\n`;
+  const muridId = document.getElementById('report-murid-select')?.value;
+  const murid = getMuridById(muridId);
+  if (!murid) return showToast('Pilih murid terlebih dahulu.', 'warn');
 
-  targetMuridList.forEach(m => {
-    const mgCount = attendanceRows.filter(r => r.code === m.code && r.mengaji === 'Hadir').length;
-    const lsCount = attendanceRows.filter(r => r.code === m.code && r.les === 'Hadir').length;
-    const mMg = mengajiRows.filter(x => x.muridId === m.id);
-    const mLs = lesRows.filter(x => x.muridId === m.id);
+  const text = buildWhatsAppText(buildStudentMonthlySummary(murid, getReportMonthValue()));
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('Laporan WhatsApp berhasil disalin!');
+    }).catch(() => {
+      fallbackCopyText(text);
+    });
+  } else {
+    fallbackCopyText(text);
+  }
+}
 
-    text += `👤 *${m.name}* (ID: *${m.code}*)\n`;
-    text += `• Kehadiran: Mengaji ${mgCount}x | Les ${lsCount}x\n`;
-    if (mMg.length > 0) {
-      const lastMg = mMg[mMg.length - 1];
-      text += `• Mengaji Terakhir: ${lastMg.jilid} (${lastMg.halaman}) - Skor ${lastMg.skor || lastMg.nilai}\n`;
-    }
-    if (mLs.length > 0) {
-      const lastLs = mLs[mLs.length - 1];
-      text += `• Les Terakhir: ${lastLs.mapel} (${lastLs.materi}) - Nilai ${lastLs.nilai}\n`;
-    }
-    text += `\n`;
-  });
-
+function fallbackCopyText(text) {
   const ta = document.createElement('textarea');
-  ta.value = text.trim();
-  ta.style.position = 'fixed';
-  ta.style.opacity = '0';
+  ta.value = text;
   document.body.appendChild(ta);
   ta.select();
   try {
     document.execCommand('copy');
-    showToast('Rekap laporan berhasil disalin untuk WhatsApp!', 'success');
+    showToast('Laporan WhatsApp berhasil disalin!');
   } catch (e) {
-    showToast('Gagal menyalin otomatis.', 'warning');
+    showToast('Gagal menyalin teks.', 'error');
   }
   document.body.removeChild(ta);
 }
+
+function pdfCleanText(str) {
+  return String(str || '').replace(/[^\x20-\x7E]/g, ' ').replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+}
+
+function buildTwoPagePdfBlob(s) {
+  const page1Ops = [
+    'BT',
+    '/F1 16 Tf', '48 790 Td', `(LAPORAN PERKEMBANGAN TAMAN BELAJAR) Tj`,
+    '/F2 10 Tf', '0 -18 Td', `(Periode: ${pdfCleanText(s.monthStr)}  |  Versi: ${pdfCleanText(tbGetAppVersion())}) Tj`,
+    '/F1 12 Tf', '0 -28 Td', `(Identitas Murid) Tj`,
+    '/F2 10 Tf', '0 -16 Td', `(Nama: ${pdfCleanText(s.murid.name)}  |  No. Induk: ${pdfCleanText(s.murid.code)}) Tj`,
+    '0 -14 Td', `(Kelas: ${pdfCleanText(s.murid.kelas || '-')}  |  Program: ${pdfCleanText(s.murid.program || 'Keduanya')}) Tj`,
+    '/F1 12 Tf', '0 -26 Td', `(Ringkasan Kehadiran & Nilai) Tj`,
+    '/F2 10 Tf', '0 -16 Td', `(Kehadiran Mengaji: ${s.hadirMengaji} sesi  |  Kehadiran Les: ${s.hadirLes} sesi) Tj`,
+    '0 -14 Td', `(Rata-rata Nilai Les: ${s.avgLes !== null ? s.avgLes : '-'}  |  Rata-rata Skor Mengaji: ${s.avgMengaji !== null ? s.avgMengaji : '-'}) Tj`,
+    '/F1 12 Tf', '0 -26 Td', `(Riwayat Mengaji) Tj`,
+    '/F2 9.5 Tf'
+  ];
+
+  if (s.mengajiItems.length === 0) {
+    page1Ops.push('0 -15 Td', `(Belum ada catatan mengaji pada periode ini.) Tj`);
+  } else {
+    s.mengajiItems.slice(0, 14).forEach(x => {
+      const rowTxt = `- [${x.date || '-'}] ${x.jilid} (${x.halaman}) - ${x.nilai || ''} (Skor: ${x.skor ?? '-'})`;
+      page1Ops.push('0 -14 Td', `(${pdfCleanText(rowTxt.slice(0, 88))}) Tj`);
+    });
+  }
+  page1Ops.push('0 -22 Td', `(Halaman 1 dari 2) Tj', 'ET');
+
+  const page2Ops = [
+    'BT',
+    '/F1 14 Tf', '48 790 Td', '(Riwayat Nilai & Evaluasi Les / Bimbel) Tj',
+    '/F2 10 Tf', '0 -18 Td', `(Murid: ${pdfCleanText(s.murid.name)} (${pdfCleanText(s.murid.code)})  |  Periode: ${pdfCleanText(s.monthStr)}) Tj`,
+    '/F2 9.5 Tf', '0 -14 Td'
+  ];
+
+  if (s.lesItems.length === 0) {
+    page2Ops.push('0 -14 Td', `(Belum ada catatan nilai les pada periode ini.) Tj`);
+  } else {
+    s.lesItems.slice(0, 18).forEach(x => {
+      const rowTxt = `- [${x.date || '-'}] ${x.mapel}: ${x.materi} | Nilai: ${x.nilai}${x.catatan ? ` (${x.catatan})` : ''}`;
+      page2Ops.push('0 -15 Td', `(${pdfCleanText(rowTxt.slice(0, 90))}) Tj`);
+    });
+  }
+
+  page2Ops.push(
+    '0 -32 Td', `/F1 10 Tf`, `(Catatan Wali Murid / Guru Pengajar:) Tj`,
+    '/F2 9.5 Tf', '0 -16 Td', `(Terima kasih atas dukungan dan pendampingan belajar ananda di rumah.) Tj`,
+    '0 -28 Td', `(Halaman 2 dari 2 - Taman Belajar) Tj`,
+    'ET'
+  );
+
+  const s1 = page1Ops.join('\n');
+  const s2 = page2Ops.join('\n');
+
+  const objs = [
+    '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n',
+    '2 0 obj\n<< /Type /Pages /Kids [3 0 R 4 0 R] /Count 2 >>\nendobj\n',
+    '3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 7 0 R >>\nendobj\n',
+    '4 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 8 0 R >>\nendobj\n',
+    '5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>\nendobj\n',
+    '6 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n',
+    `7 0 obj\n<< /Length ${s1.length} >>\nstream\n${s1}\nendstream\nendobj\n`,
+    `8 0 obj\n<< /Length ${s2.length} >>\nstream\n${s2}\nendstream\nendobj\n`
+  ];
+
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+  objs.forEach(o => {
+    offsets.push(pdf.length);
+    pdf += o;
+  });
+
+  const xrefPos = pdf.length;
+  pdf += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n`;
+  for (let i = 1; i <= objs.length; i++) {
+    pdf += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
+  }
+  pdf += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF`;
+
+  return new Blob([pdf], { type: 'application/pdf' });
+}
+
+function generateAndDownloadPDF() {
+  const muridId = document.getElementById('report-murid-select')?.value;
+  const murid = getMuridById(muridId);
+  if (!murid) return showToast('Pilih murid terlebih dahulu.', 'warn');
+
+  const monthStr = getReportMonthValue();
+  const summary = buildStudentMonthlySummary(murid, monthStr);
+  const blob = buildTwoPagePdfBlob(summary);
+  const fileName = `Laporan_${murid.code}_${monthStr}.pdf`;
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+  const statusEl = document.getElementById('pdf-status-msg');
+  if (statusEl) {
+    statusEl.textContent = `File "${fileName}" (2 halaman) berhasil dibuat dan diunduh.`;
+    statusEl.classList.remove('hidden');
+  }
+  showToast('PDF 2 halaman berhasil diunduh.');
+}
+

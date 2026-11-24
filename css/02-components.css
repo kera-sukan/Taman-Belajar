@@ -1,0 +1,408 @@
+﻿/* File: css/02-components.css | Build: V 0.06.11.24.2233 */
+.tb-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.tb-icon-sm {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.tb-icon-lg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.liquid-header-wave {
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 55%, #4f46e5 100%);
+  box-shadow: 0 14px 28px -10px rgba(37, 99, 235, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.glyph-pill {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 6px 12px -6px rgba(15, 23, 42, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.glyph-box {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 16px -8px rgba(15, 23, 42, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.glyph-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #ffffff; }
+.glyph-green { background: linear-gradient(135deg, #10b981, #047857); color: #ffffff; }
+.glyph-purple { background: linear-gradient(135deg, #8b5cf6, #5b21b6); color: #ffffff; }
+.glyph-amber { background: linear-gradient(135deg, #f59e0b, #b45309); color: #ffffff; }
+.glyph-rose { background: linear-gradient(135deg, #f43f5e, #be123c); color: #ffffff; }
+
+.stat-mini-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-mini-card:active {
+  transform: scale(0.97);
+}
+
+.quick-glyph-tile {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.quick-glyph-tile:active {
+  transform: scale(0.96);
+}
+
+.progress-donut {
+  --pct: 0%;
+  width: 64px;
+  height: 64px;
+  border-radius: 9999px;
+  background: conic-gradient(var(--accent-main) var(--pct), rgba(148, 163, 184, 0.22) 0);
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+
+.progress-donut-inner {
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  background: var(--glass-bg-strong);
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.capsule-dock-wrapper {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+  pointer-events: none;
+}
+
+.capsule-dock {
+  pointer-events: auto;
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 9999px;
+  overflow: visible;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(26px) saturate(185%);
+  -webkit-backdrop-filter: blur(26px) saturate(185%);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 16px 34px -10px rgba(15, 23, 42, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.capsule-wave-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.55), transparent 70%);
+  transition: transform 0.2s ease;
+}
+
+.dock-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 6px 4px;
+  border-radius: 18px;
+  color: #475569;
+  transition: transform 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+}
+
+.dock-item.active {
+  color: var(--accent-main);
+  background: var(--accent-soft);
+  font-weight: 700;
+}
+
+.dock-fab-slot {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dock-fab-center {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--accent-main), #4f46e5);
+  border: 3px solid rgba(255, 255, 255, 0.96);
+  box-shadow: 0 14px 26px -6px rgba(37, 99, 235, 0.52);
+  transition: transform 0.2s ease;
+}
+
+.dock-fab-center.open {
+  transform: rotate(45deg);
+}
+
+.quick-action-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 86px;
+  z-index: 45;
+  width: calc(100% - 32px);
+  max-width: 392px;
+  transform: translate(-50%, 14px) scale(0.96);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.quick-action-sheet.open {
+  transform: translate(-50%, 0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Mode PC / Lanskap: Dipadatkan ke atas di panel kiri */
+@media (min-width: 768px), (orientation: landscape) and (min-width: 560px) {
+  #slot-header header {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    width: 224px;
+    z-index: 35;
+    padding: 12px 14px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.92);
+    box-shadow: 0 12px 28px -10px rgba(15, 23, 42, 0.16);
+  }
+
+  #slot-header header > div {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  #slot-header header > div > div:last-child {
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px solid rgba(148, 163, 184, 0.22);
+  }
+
+  .capsule-dock-wrapper {
+    top: 142px;
+    bottom: auto;
+    left: 14px;
+    right: auto;
+    width: 224px;
+    padding: 0;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .capsule-dock {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 4px;
+    padding: 8px;
+    border-radius: 24px;
+  }
+
+  .capsule-wave-sheen {
+    border-radius: 24px;
+  }
+
+  .dock-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 14px;
+  }
+
+  .dock-item svg {
+    margin-bottom: 0;
+  }
+
+  .dock-item span {
+    font-size: 12px;
+  }
+
+  .dock-fab-slot {
+    height: auto;
+    padding: 2px 0;
+  }
+
+  .dock-fab-center {
+    width: 100%;
+    height: 38px;
+    border-radius: 14px;
+    border-width: 1.5px;
+    gap: 6px;
+    box-shadow: 0 8px 18px -6px rgba(37, 99, 235, 0.42);
+  }
+
+  .dock-fab-center::after {
+    content: 'Tambah Catatan';
+    font-size: 11.5px;
+    font-weight: 800;
+  }
+
+  .dock-fab-center.open {
+    transform: none;
+  }
+
+  .quick-action-sheet {
+    left: 250px;
+    bottom: auto;
+    top: 142px;
+    width: 340px;
+    max-width: calc(100vw - 268px);
+    transform: translate(-12px, 0) scale(0.96);
+  }
+
+  .quick-action-sheet.open {
+    transform: translate(0, 0) scale(1);
+  }
+
+  body,
+  #app-shell,
+  #slot-main,
+  #main-scroll-area,
+  #main-scroll-area > section,
+  #main-scroll-area > section > div {
+    max-width: none !important;
+  }
+
+  #main-scroll-area {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 248px !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 14px 18px 28px 18px !important;
+    overflow-y: auto !important;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Batasi lebar tampilan login agar proporsional di layar PC / lanskap (V 0.06.11.24.2235) */
+@media (min-width: 768px), (orientation: landscape) and (min-width: 560px) {
+  #slot-login > div,
+  #login-screen > div {
+    max-width: 420px !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+
+/* Sembunyikan layar login saat memiliki kelas hidden & rapikan lebar di layar PC / lanskap (V 0.06.11.24.2238) */
+#slot-login.hidden,
+#login-screen.hidden {
+  display: none !important;
+}
+
+@media (min-width: 768px), (orientation: landscape) and (min-width: 560px) {
+  #slot-login:not(.hidden),
+  #login-screen:not(.hidden) {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  #slot-login:not(.hidden) > div,
+  #login-screen:not(.hidden) > div {
+    max-width: 440px !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+
+/* Pastikan seluruh isi #slot-login tersembunyi penuh saat #slot-login memiliki kelas hidden (V 0.06.11.24.2240) */
+#slot-login.hidden,
+#slot-login.hidden > *,
+#slot-login.hidden [id*="login"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Perbaikan final #app-root & layar login saat sudah login (V 0.06.11.24.2247) */
+body.tb-logged-in #slot-login,
+body.tb-logged-in #slot-login * {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+@media (min-width: 768px), (orientation: landscape) and (min-width: 560px) {
+  #app-root {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  #main-scroll-area {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 248px !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 14px 18px 28px 18px !important;
+    overflow-y: auto !important;
+  }
+}

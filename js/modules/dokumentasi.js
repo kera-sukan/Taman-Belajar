@@ -1,131 +1,182 @@
-// ============================================================================
-// TAMAN BELAJAR - MODULE: DOKUMENTASI FOTO KEGIATAN
-// ============================================================================
+﻿// File: js/modules/dokumentasi.js | Build: V 0.06.11.24.2151
+let pendingDocDataUrl = '';
+const DOC_RETENTION_DAYS = 7;
 
-let tbPendingPhotoBase64 = '';
-
-function openDocModal() {
-  if (!(canWrite() && hasModuleAccess('dokumentasi'))) {
-    showToast('Anda tidak memiliki izin mengunggah dokumentasi foto.', 'warning');
-    return;
+function purgeExpiredDocs() {
+  const db = window.TBStore.db;
+  if (!Array.isArray(db.docs)) {
+    db.docs = [];
+    return false;
   }
-  tbPendingPhotoBase64 = '';
-  document.getElementById('doc-photo-input').value = '';
-  document.getElementById('doc-photo-preview').classList.add('hidden');
-  document.getElementById('doc-caption').value = '';
-  const todayStr = new Date().toLocaleDateString('id-ID', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  const now = Date.now();
+  const maxAgeMs = DOC_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+  const before = db.docs.length;
+  db.docs = db.docs.filter(d => {
+    const created = Number(d.createdAt || 0);
+    if (!created) return true;
+    return (now - created) <= maxAgeMs;
   });
-  document.getElementById('doc-auto-date-label').textContent = todayStr;
-  document.getElementById('modal-doc').classList.remove('hidden');
+  return db.docs.length !== before;
 }
 
-function previewDocPhoto(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+function openDocModal() {
+  if (!hasModuleAccess('dokumentasi')) {
+    return showToast('Akses Dokumentasi Foto tidak aktif untuk akun ini.', 'warn');
+  }
+  if (!canWrite()) {
+    return showToast('Hanya Admin/Guru yang dapat menambah dokumentasi kegiatan.', 'warn');
+  }
+  pendingDocDataUrl = '';
+  const inp = document.getElementById('doc-photo-input');
+  const prev = document.getElementById('doc-photo-preview');
+  const cap = document.getElementById('doc-caption');
+  const dateLbl = document.getElementById('doc-auto-date-label');
+
+  if (inp) inp.value = '';
+  if (prev) {
+    prev.src = '';
+    prev.classList.add('hidden');
+  }
+  if (cap) cap.value = '';
+  if (dateLbl) dateLbl.textContent = formatIndoDate(window.TBStore.activeDate);
+  openModal('modal-doc');
+}
+
+function compressImageFile(file, maxWidth, quality, cb) {
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = function (ev) {
     const img = new Image();
-    img.onload = function() {
+    img.onload = function () {
+      const ratio = Math.min(1, (maxWidth || 900) / img.width);
       const canvas = document.createElement('canvas');
-      const maxW = 720;
-      const scale = img.width > maxW ? maxW / img.width : 1;
-      canvas.width = Math.round(img.width * scale);
-      canvas.height = Math.round(img.height * scale);
+      canvas.width = Math.max(1, Math.round(img.width * ratio));
+      canvas.height = Math.max(1, Math.round(img.height * ratio));
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      tbPendingPhotoBase64 = canvas.toDataURL('image/jpeg', 0.72);
-      const prev = document.getElementById('doc-photo-preview');
-      prev.src = tbPendingPhotoBase64;
-      prev.classList.remove('hidden');
+      const outUrl = canvas.toDataURL('image/jpeg', quality || 0.72);
+      cb(outUrl);
     };
-    img.src = e.target.result;
+    img.onerror = function () { cb(ev.target.result); };
+    img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
 }
 
+function previewDocPhoto(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  compressImageFile(file, 900, 0.72, dataUrl => {
+    pendingDocDataUrl = dataUrl;
+    const prev = document.getElementById('doc-photo-preview');
+    if (prev) {
+      prev.src = dataUrl;
+      prev.classList.remove('hidden');
+    }
+  });
+}
+
 function saveDocForm() {
-  const caption = document.getElementById('doc-caption').value.trim();
-  if (!tbPendingPhotoBase64) return showToast('Pilih atau ambil foto kegiatan terlebih dahulu.', 'error');
-  if (!caption) return showToast('Isi keterangan singkat kegiatan.', 'error');
+  if (!canWrite()) return;
+  const caption = (document.getElementById('doc-caption')?.value || '').trim();
+  if (!pendingDocDataUrl) {
+    return showToast('Pilih atau ambil foto kegiatan terlebih dahulu.', 'warn');
+  }
+  if (!caption) {
+    return showToast('Keterangan singkat kegiatan wajib diisi.', 'warn');
+  }
 
-  const now = new Date();
-  window.TBStore.db.docs.unshift({
+  const db = window.TBStore.db;
+  if (!Array.isArray(db.docs)) db.docs = [];
+  const ds = window.TBStore.activeDate || new Date().toISOString().slice(0, 10);
+
+  db.docs.unshift({
     id: 'doc-' + Date.now(),
-    photo: tbPendingPhotoBase64,
+    date: ds,
+    createdAt: Date.now(),
     caption,
-    date: now.toISOString().slice(0, 10),
-    time: now.toTimeString().slice(0, 5),
-    author: window.TBStore.currentUser.name
+    photoUrl: pendingDocDataUrl,
+    author: (window.TBStore.currentUser && window.TBStore.currentUser.name) || 'Admin'
   });
 
-  tbPushNode('docs');
+  purgeExpiredDocs();
+  pendingDocDataUrl = '';
   closeModal('modal-doc');
-  renderDashboardDocs();
-  showToast('Dokumentasi kegiatan berhasil ditambahkan!', 'success');
+  tbPushNode('docs');
+  showToast('Dokumentasi foto disimpan (otomatis terhapus setelah 7 hari).');
+  renderBerandaDocs();
 }
 
-function deleteDoc(id) {
-  if (!isSuperAdmin()) return;
-  showConfirmDialog('Hapus foto dokumentasi ini?', () => {
-    window.TBStore.db.docs = window.TBStore.db.docs.filter(d => d.id !== id);
+function openDocViewer(docId) {
+  const doc = (window.TBStore.db.docs || []).find(d => d.id === docId);
+  if (!doc) return;
+  const img = document.getElementById('doc-view-img');
+  const meta = document.getElementById('doc-view-meta');
+  const cap = document.getElementById('doc-view-caption');
+  if (img) img.src = doc.photoUrl || '';
+  if (meta) meta.textContent = `${formatIndoDate(doc.date)} • ${doc.author || 'Taman Belajar'}`;
+  if (cap) cap.textContent = doc.caption || '';
+  openModal('modal-doc-view');
+}
+
+function deleteDoc(docId) {
+  if (!canWrite()) return;
+  showConfirm('Hapus foto dokumentasi ini?', () => {
+    window.TBStore.db.docs = (window.TBStore.db.docs || []).filter(d => d.id !== docId);
     tbPushNode('docs');
-    renderDashboardDocs();
-    showToast('Dokumentasi foto dihapus.', 'info');
+    showToast('Dokumentasi dihapus.');
+    renderBerandaDocs();
   });
-}
-
-function openDocView(id) {
-  const item = window.TBStore.db.docs.find(d => d.id === id);
-  if (!item) return;
-  document.getElementById('doc-view-img').src = item.photo;
-  document.getElementById('doc-view-meta').textContent = `${item.date} • ${item.time || ''} • Oleh: ${item.author}`;
-  document.getElementById('doc-view-caption').textContent = item.caption;
-  document.getElementById('modal-doc-view').classList.remove('hidden');
 }
 
 function updateDocCarouselDots() {
   const listEl = document.getElementById('dashboard-doc-list');
   const dotsEl = document.getElementById('doc-dots-indicator');
-  if (!listEl || !dotsEl || !window.TBStore.db) return;
-  const docs = window.TBStore.db.docs || [];
-  const total = Math.max(1, Math.min(docs.length, 5));
-  const maxScroll = Math.max(1, listEl.scrollWidth - listEl.clientWidth);
-  const activeIdx = Math.min(total - 1, Math.round((listEl.scrollLeft / maxScroll) * (total - 1)));
-  dotsEl.innerHTML = Array.from({ length: total }).map((_, i) =>
-    i === activeIdx
-      ? '<span class="w-4 h-1.5 rounded-full bg-blue-600 transition-all"></span>'
-      : '<span class="w-1.5 h-1.5 rounded-full bg-slate-400/50 transition-all"></span>'
+  if (!listEl || !dotsEl) return;
+  const cards = listEl.querySelectorAll('[data-doc-card]');
+  if (cards.length <= 1) {
+    dotsEl.innerHTML = '';
+    return;
+  }
+  const idx = Math.min(cards.length - 1, Math.max(0, Math.round(listEl.scrollLeft / Math.max(1, cards[0].offsetWidth + 10))));
+  dotsEl.innerHTML = Array.from(cards).map((_, i) =>
+    `<span class="h-1.5 rounded-full transition-all ${i === idx ? 'w-4 bg-blue-600' : 'w-1.5 bg-slate-300'}"></span>`
   ).join('');
 }
 
-function renderDashboardDocs() {
-  const container = document.getElementById('dashboard-doc-list');
-  const dots = document.getElementById('doc-dots-indicator');
-  if (!container || !dots || !window.TBStore.db) return;
+function renderBerandaDocs() {
+  const listEl = document.getElementById('dashboard-doc-list');
+  const dotsEl = document.getElementById('doc-dots-indicator');
+  if (!listEl) return;
 
-  const docs = window.TBStore.db.docs || [];
-  if (docs.length === 0) {
-    container.innerHTML = `
-      <div class="w-full py-5 px-3 rounded-2xl bg-white/50 border border-dashed border-slate-300 text-center text-[11px] text-slate-500">
-        Belum ada dokumentasi foto kegiatan. Guru dapat mengunggah foto kapan saja.
-      </div>`;
-    dots.classList.add('hidden');
+  if (!hasModuleAccess('dokumentasi')) {
+    listEl.innerHTML = `<div class="w-full p-4 rounded-2xl bg-white/60 text-center text-[11px] text-slate-500">Dokumentasi foto tidak diaktifkan untuk akun ini.</div>`;
+    if (dotsEl) dotsEl.innerHTML = '';
     return;
   }
 
-  dots.classList.remove('hidden');
-  container.innerHTML = docs.map(d => `
-    <div class="w-44 shrink-0 rounded-2xl overflow-hidden bg-white/80 border border-white shadow-sm relative">
-      <img src="${d.photo}" onclick="openDocView('${d.id}')" class="w-full h-24 object-cover cursor-pointer" alt="Kegiatan" />
-      ${isSuperAdmin() ? `
-        <button type="button" onclick="deleteDoc('${d.id}')" class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600/90 text-white text-[10px] font-bold shadow">✕</button>
+  const changed = purgeExpiredDocs();
+  if (changed) tbSaveLocalDB();
+
+  const docs = window.TBStore.db.docs || [];
+  if (docs.length === 0) {
+    listEl.innerHTML = `<div class="w-full p-4 rounded-2xl bg-white/60 text-center text-[11px] text-slate-500">Belum ada foto dokumentasi kegiatan (maksimal simpan 7 hari).</div>`;
+    if (dotsEl) dotsEl.innerHTML = '';
+    return;
+  }
+
+  const writeAllowed = canWrite();
+  listEl.innerHTML = docs.map(d => `
+    <div data-doc-card class="shrink-0 w-44 rounded-2xl bg-white/75 border border-white/90 overflow-hidden shadow-xs relative group">
+      <img src="${escapeHtml(d.photoUrl)}" alt="${escapeHtml(d.caption)}" onclick="openDocViewer('${escapeHtml(d.id)}')" class="w-full h-24 object-cover cursor-pointer bg-slate-200" />
+      ${writeAllowed ? `
+        <button type="button" onclick="deleteDoc('${escapeHtml(d.id)}')" aria-label="Hapus Foto" class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-slate-900/70 text-white text-[10px] font-bold flex items-center justify-center">×</button>
       ` : ''}
-      <div class="p-2 cursor-pointer" onclick="openDocView('${d.id}')">
-        <p class="text-[11px] font-bold text-slate-800 truncate">${d.caption}</p>
-        <p class="text-[9.5px] text-slate-500 truncate mt-0.5">📅 ${d.date} • ${d.author}</p>
+      <div class="p-2" onclick="openDocViewer('${escapeHtml(d.id)}')">
+        <p class="text-[10.5px] font-bold text-slate-800 truncate">${escapeHtml(d.caption)}</p>
+        <p class="text-[9.5px] text-slate-500 mt-0.5">${escapeHtml(d.date || '-')}</p>
       </div>
     </div>
   `).join('');
+
   updateDocCarouselDots();
 }

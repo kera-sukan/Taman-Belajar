@@ -1,106 +1,111 @@
-// ============================================================================
-// TAMAN BELAJAR - MODULE: ABSENSI KEHADIRAN
-// ============================================================================
+﻿// File: js/modules/absensi.js | Build: V 0.06.11.24.2147
+let activeHadirSession = 'mengaji';
 
 function setHadirSession(sess) {
-  window.TBStore.hadirSession = sess;
-  const btnMg = document.getElementById('subtab-hadir-mengaji');
-  const btnLs = document.getElementById('subtab-hadir-les');
-  if (btnMg) {
-    btnMg.className = sess === 'mengaji'
+  activeHadirSession = sess === 'les' ? 'les' : 'mengaji';
+  const btnMengaji = document.getElementById('subtab-hadir-mengaji');
+  const btnLes = document.getElementById('subtab-hadir-les');
+
+  if (btnMengaji) {
+    btnMengaji.className = activeHadirSession === 'mengaji'
       ? 'py-2 text-xs font-extrabold rounded-xl bg-emerald-600 text-white shadow-sm transition'
       : 'py-2 text-xs font-bold rounded-xl text-slate-600 transition';
   }
-  if (btnLs) {
-    btnLs.className = sess === 'les'
+  if (btnLes) {
+    btnLes.className = activeHadirSession === 'les'
       ? 'py-2 text-xs font-extrabold rounded-xl bg-blue-600 text-white shadow-sm transition'
       : 'py-2 text-xs font-bold rounded-xl text-slate-600 transition';
   }
   renderHadirList();
 }
 
-function renderHadirList() {
-  const container = document.getElementById('hadir-list-container');
-  if (!container || !window.TBStore.db) return;
-
-  const sess = window.TBStore.hadirSession;
-  const activeDate = window.TBStore.activeDate;
-
-  const list = getAccessibleMurid().filter(m =>
-    m.program === 'Keduanya' ||
-    (sess === 'mengaji' && m.program === 'Mengaji') ||
-    (sess === 'les' && m.program === 'Les')
-  );
-
-  const attToday = window.TBStore.db.attendance[activeDate] || { mengaji: [], les: [] };
-  const presentIds = new Set(attToday[sess] || []);
-
-  if (list.length === 0) {
-    container.innerHTML = `<div class="liquid-glass-card p-6 rounded-2xl text-center text-xs text-slate-500">Tidak ada murid terdaftar pada sesi ini.</div>`;
-    return;
+function ensureDayAttendance(dateStr) {
+  const db = window.TBStore.db;
+  if (!db.attendance || typeof db.attendance !== 'object') db.attendance = {};
+  if (!db.attendance[dateStr]) {
+    db.attendance[dateStr] = { mengaji: [], les: [] };
   }
-
-  container.innerHTML = list.map(m => {
-    const isPresent = presentIds.has(m.id);
-    const lockedForGuru = isPresent && isGuru();
-    const disabled = isWali() || lockedForGuru;
-
-    return `
-      <div onclick="${disabled ? '' : `toggleAttendance('${m.id}')`}"
-        class="liquid-glass-card p-3.5 rounded-2xl ${isPresent ? 'border-emerald-300/90 bg-emerald-50/50' : ''} flex items-center justify-between gap-3 ${disabled ? 'cursor-default' : 'cursor-pointer active:scale-[0.99]'} transition">
-        <div class="min-w-0">
-          <div class="flex items-center gap-1.5">
-            <span class="px-1.5 py-0.5 rounded bg-white/80 text-[10px] font-bold text-slate-700">${m.code}</span>
-            <p class="text-xs font-bold text-slate-800 truncate">${m.name}</p>
-          </div>
-          <p class="text-[11px] text-slate-600 mt-0.5">${isPresent ? 'Status: Hadir' : 'Status: Belum Hadir'} ${lockedForGuru ? '• (Terkunci)' : ''}</p>
-        </div>
-        <div class="w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs ${isPresent ? 'bg-emerald-600 text-white shadow-sm' : 'bg-white/70 text-slate-400'}">
-          ✓
-        </div>
-      </div>
-    `;
-  }).join('');
+  if (!Array.isArray(db.attendance[dateStr].mengaji)) db.attendance[dateStr].mengaji = [];
+  if (!Array.isArray(db.attendance[dateStr].les)) db.attendance[dateStr].les = [];
+  return db.attendance[dateStr];
 }
 
-function toggleAttendance(muridId) {
-  if (!canWrite()) return;
-  const db = window.TBStore.db;
-  const activeDate = window.TBStore.activeDate;
-  const sess = window.TBStore.hadirSession;
-
-  if (!db.attendance[activeDate]) db.attendance[activeDate] = { mengaji: [], les: [] };
-  const arr = db.attendance[activeDate][sess] || [];
+function toggleAttendance(muridId, sessionName) {
+  if (!canWrite()) return showToast('Hanya Admin/Guru yang dapat mengubah absensi.', 'warn');
+  const sess = sessionName === 'les' ? 'les' : 'mengaji';
+  const ds = window.TBStore.activeDate;
+  const day = ensureDayAttendance(ds);
+  const arr = day[sess];
   const idx = arr.indexOf(muridId);
 
-  if (idx === -1) {
-    arr.push(muridId);
-  } else {
-    if (!canEditOrDelete()) {
-      showToast('User Guru tidak dapat membatalkan kehadiran yang sudah tercatat.', 'warning');
-      return;
-    }
+  if (idx !== -1) {
     arr.splice(idx, 1);
+  } else {
+    arr.push(muridId);
   }
 
-  db.attendance[activeDate][sess] = arr;
   tbPushNode('attendance');
-  tbNotifyListeners();
+  renderHadirList();
+  if (typeof renderBeranda === 'function') renderBeranda();
 }
 
 function markAllPresent() {
-  if (!canWrite()) return;
-  const db = window.TBStore.db;
-  const activeDate = window.TBStore.activeDate;
-  const sess = window.TBStore.hadirSession;
+  if (!canWrite()) return showToast('Hanya Admin/Guru yang dapat menandai kehadiran.', 'warn');
+  const ds = window.TBStore.activeDate;
+  const day = ensureDayAttendance(ds);
+  const kids = getAccessibleMurid().filter(m => {
+    const prog = m.program || 'Keduanya';
+    if (activeHadirSession === 'mengaji') return prog === 'Keduanya' || prog === 'Mengaji';
+    return prog === 'Keduanya' || prog === 'Les';
+  });
 
-  if (!db.attendance[activeDate]) db.attendance[activeDate] = { mengaji: [], les: [] };
-  const eligibleIds = db.murid
-    .filter(m => m.program === 'Keduanya' || (sess === 'mengaji' && m.program === 'Mengaji') || (sess === 'les' && m.program === 'Les'))
-    .map(m => m.id);
-
-  db.attendance[activeDate][sess] = Array.from(new Set([...(db.attendance[activeDate][sess] || []), ...eligibleIds]));
+  day[activeHadirSession] = kids.map(k => k.id);
   tbPushNode('attendance');
-  tbNotifyListeners();
-  showToast('Semua murid pada sesi ini ditandai hadir.', 'success');
+  showToast(`Semua murid sesi ${activeHadirSession === 'mengaji' ? 'Mengaji' : 'Les'} ditandai hadir.`);
+  renderHadirList();
+  if (typeof renderBeranda === 'function') renderBeranda();
+}
+
+function renderHadirList() {
+  const container = document.getElementById('hadir-list-container');
+  if (!container) return;
+
+  const ds = window.TBStore.activeDate;
+  const day = ensureDayAttendance(ds);
+  const presentSet = new Set(day[activeHadirSession] || []);
+  const writeAllowed = canWrite();
+
+  const kids = getAccessibleMurid().filter(m => {
+    const prog = m.program || 'Keduanya';
+    if (activeHadirSession === 'mengaji') return prog === 'Keduanya' || prog === 'Mengaji';
+    return prog === 'Keduanya' || prog === 'Les';
+  });
+
+  if (kids.length === 0) {
+    container.innerHTML = `<div class="liquid-glass-card p-6 rounded-2xl text-center text-xs text-slate-500">Tidak ada murid terdaftar untuk sesi ini.</div>`;
+    return;
+  }
+
+  container.innerHTML = kids.map(m => {
+    const isHadir = presentSet.has(m.id);
+    return `
+      <div class="liquid-glass-card p-3 rounded-2xl flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5">
+            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-extrabold">${escapeHtml(m.code)}</span>
+            <span class="text-[10.5px] text-slate-500 truncate">${escapeHtml(m.kelas || '-')}</span>
+          </div>
+          <p class="text-xs font-extrabold text-slate-800 mt-0.5 truncate">${escapeHtml(m.name)}</p>
+        </div>
+        <button type="button" ${writeAllowed ? `onclick="toggleAttendance('${escapeHtml(m.id)}', '${activeHadirSession}')"` : 'disabled'}
+          class="px-3 py-1.5 rounded-xl text-[11px] font-extrabold shrink-0 transition ${
+            isHadir
+              ? 'bg-emerald-600 text-white shadow-sm'
+              : 'bg-white/80 text-slate-600 border border-slate-200'
+          } ${!writeAllowed ? 'opacity-70 cursor-default' : ''}">
+          ${isHadir ? 'Hadir' : 'Belum'}
+        </button>
+      </div>
+    `;
+  }).join('');
 }

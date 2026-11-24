@@ -1,0 +1,58 @@
+﻿/* File: css/03-themes.css | Build: V 0.06.11.24.2125 */
+html[data-accent="blue"] { --accent-main: #2563eb; --accent-soft: rgba(37, 99, 235, 0.14); }
+html[data-accent="emerald"] { --accent-main: #059669; --accent-soft: rgba(5, 150, 105, 0.14); }
+html[data-accent="violet"] { --accent-main: #7c3aed; --accent-soft: rgba(124, 58, 237, 0.14); }
+html[data-accent="rose"] { --accent-main: #e11d48; --accent-soft: rgba(225, 29, 72, 0.14); }
+html[data-accent="amber"] { --accent-main: #d97706; --accent-soft: rgba(217, 119, 6, 0.15); }
+
+html[data-glass="clear"] {
+  --glass-bg: rgba(255, 255, 255, 0.44);
+  --glass-bg-strong: rgba(255, 255, 255, 0.64);
+}
+
+html[data-glass="frost-heavy"] {
+  --glass-bg: rgba(255, 255, 255, 0.88);
+  --glass-bg-strong: rgba(255, 255, 255, 0.95);
+}
+
+html[data-mode="dark"] body.liquid-mesh-bg,
+html[data-mode="dark"] .liquid-mesh-bg {
+  background-color: #0b1120;
+  background-image:
+    radial-gradient(at 10% 12%, rgba(59, 130, 246, 0.24) 0px, transparent 50%),
+    radial-gradient(at 90% 15%, rgba(139, 92, 246, 0.2) 0px, transparent 50%),
+    radial-gradient(at 20% 88%, rgba(16, 185, 129, 0.16) 0px, transparent 50%),
+    linear-gradient(180deg, #0b1120 0%, #111827 100%);
+  color: #f1f5f9;
+}
+
+html[data-mode="dark"] {
+  --glass-bg: rgba(17, 24, 39, 0.72);
+  --glass-bg-strong: rgba(15, 23, 42, 0.88);
+  --glass-border: rgba(148, 163, 184, 0.22);
+  --glass-shadow: 0 14px 34px -12px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+html[data-mode="dark"] .text-slate-800,
+html[data-mode="dark"] .text-slate-900 { color: #f8fafc !important; }
+html[data-mode="dark"] .text-slate-700 { color: #e2e8f0 !important; }
+html[data-mode="dark"] .text-slate-600 { color: #cbd5e1 !important; }
+html[data-mode="dark"] .text-slate-500 { color: #94a3b8 !important; }
+html[data-mode="dark"] .bg-white\/80,
+html[data-mode="dark"] .bg-white\/70,
+html[data-mode="dark"] .bg-white\/60 { background-color: rgba(30, 41, 59, 0.72) !important; }
+html[data-mode="dark"] .glass-input {
+  background: rgba(15, 23, 42, 0.75);
+  color: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.28);
+}
+html[data-mode="dark"] .capsule-dock {
+  background: rgba(15, 23, 42, 0.84);
+  border-color: rgba(148, 163, 184, 0.24);
+}
+
+html[data-icon-style="mono"] .tb-glyph {
+  background: var(--glass-bg-strong) !important;
+  color: var(--accent-main) !important;
+  border-color: var(--accent-soft) !important;
+}

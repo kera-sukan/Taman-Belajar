@@ -1,137 +1,214 @@
-// ============================================================================
-// TAMAN BELAJAR - MODULE: DATA MURID
-// ============================================================================
-
-function renderMuridList() {
-  const container = document.getElementById('murid-list-container');
-  const searchEl = document.getElementById('search-murid');
-  if (!container || !window.TBStore.db) return;
-
-  const q = (searchEl?.value || '').trim().toLowerCase();
-  const list = getAccessibleMurid().filter(m =>
-    (m.name || '').toLowerCase().includes(q) || (m.code || '').toLowerCase().includes(q)
-  );
-
-  if (list.length === 0) {
-    container.innerHTML = `<div class="liquid-glass-card p-6 rounded-2xl text-center text-xs text-slate-500">Data murid tidak ditemukan.</div>`;
-    return;
-  }
-
-  const renderCard = (m) => `
-    <div class="liquid-glass-card p-3.5 rounded-2xl flex items-center justify-between gap-3">
-      <div class="flex items-center gap-3 min-w-0">
-        <div class="px-2.5 h-11 rounded-2xl ${m.program === 'Keduanya' ? 'bg-indigo-100/80 border-indigo-200 text-indigo-700' : 'bg-emerald-100/80 border-emerald-200 text-emerald-700'} border flex flex-col items-center justify-center shrink-0">
-          <span class="text-[8px] font-bold opacity-75 uppercase">ID MURID</span>
-          <span class="text-[10px] font-extrabold tracking-tight">${m.code}</span>
-        </div>
-        <div class="min-w-0">
-          <p class="text-xs font-extrabold text-slate-800 truncate">${m.name}</p>
-          <p class="text-[11px] text-slate-600 truncate">${m.kelas || '-'} • Program: <b>${m.program}</b></p>
-          <p class="text-[10px] text-slate-500 truncate">Wali: ${m.wali || '-'} ${isSuperAdmin() ? `• PIN: <b class="text-slate-700">${m.pin}</b>` : ''}</p>
-        </div>
-      </div>
-      ${canEditOrDelete() ? `
-        <div class="flex items-center gap-1 shrink-0">
-          <button type="button" onclick="openMuridModal('${m.id}')" class="px-2 py-1.5 rounded-lg bg-amber-100/90 text-amber-800 text-[10px] font-bold">Edit</button>
-          <button type="button" onclick="deleteMurid('${m.id}')" class="px-2 py-1.5 rounded-lg bg-rose-100/90 text-rose-800 text-[10px] font-bold">Hapus</button>
-        </div>
-      ` : ''}
-    </div>
-  `;
-
-  const groupBoth = list.filter(m => m.program === 'Keduanya');
-  const groupSingle = list.filter(m => m.program !== 'Keduanya');
-
-  let htmlOut = '';
-  if (groupBoth.length > 0) {
-    htmlOut += `<div class="space-y-2">
-      <p class="text-[11px] font-extrabold uppercase tracking-wider text-indigo-800 px-1">Program Terpadu: Mengaji & Les (${groupBoth.length})</p>
-      ${groupBoth.map(renderCard).join('')}
-    </div>`;
-  }
-  if (groupSingle.length > 0) {
-    htmlOut += `<div class="space-y-2 pt-1">
-      <p class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-800 px-1">Program Tunggal: Mengaji / Les (${groupSingle.length})</p>
-      ${groupSingle.map(renderCard).join('')}
-    </div>`;
-  }
-  container.innerHTML = htmlOut;
+﻿// File: js/modules/murid.js | Build: V 0.06.11.24.2147
+function escapeHtml(str) {
+  return String(str || '').replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[m]));
 }
 
-function openMuridModal(editId = null) {
-  if (editId && !canEditOrDelete()) {
-    showToast('User Guru hanya dapat menambah data baru, tidak dapat mengubah data lama.', 'warning');
-    return;
-  }
-  if (!editId && !canWrite()) return;
+function getMuridById(id) {
+  return (window.TBStore.db.murid || []).find(m => m.id === id) || null;
+}
 
-  document.getElementById('murid-edit-id').value = editId || '';
-  if (editId) {
-    const m = window.TBStore.db.murid.find(x => x.id === editId);
-    if (!m) return;
-    document.getElementById('modal-murid-title').textContent = 'Edit Data Murid';
-    document.getElementById('murid-code').value = m.code;
-    document.getElementById('murid-pin').value = m.pin || '1234';
-    document.getElementById('murid-name').value = m.name;
-    document.getElementById('murid-program').value = m.program;
-    document.getElementById('murid-kelas').value = m.kelas || '';
-    document.getElementById('murid-wali').value = m.wali || '';
-  } else {
-    document.getElementById('modal-murid-title').textContent = 'Tambah Data Murid Baru';
-    document.getElementById('murid-code').value = tbGenerateCode('SOL', window.TBStore.activeDate);
-    document.getElementById('murid-pin').value = '1234';
-    document.getElementById('murid-name').value = '';
-    document.getElementById('murid-program').value = 'Keduanya';
-    document.getElementById('murid-kelas').value = '';
-    document.getElementById('murid-wali').value = '';
-  }
-  document.getElementById('modal-murid').classList.remove('hidden');
+function getMuridName(id) {
+  const m = getMuridById(id);
+  return m ? m.name : 'Murid';
+}
+
+function openMuridModal(editId) {
+  if (!canWrite()) return showToast('Hanya Admin/Guru yang dapat mengelola data murid.', 'warn');
+  const m = editId ? getMuridById(editId) : null;
+  document.getElementById('modal-murid-title').textContent = m ? 'Edit Data Murid' : 'Tambah Data Murid';
+  document.getElementById('murid-edit-id').value = m ? m.id : '';
+  document.getElementById('murid-code').value = m ? m.code : tbGenerateCode('SOL', window.TBStore.activeDate);
+  document.getElementById('murid-pin').value = m ? (m.pin || '1234') : '1234';
+  document.getElementById('murid-name').value = m ? m.name : '';
+  document.getElementById('murid-program').value = m ? (m.program || 'Keduanya') : 'Keduanya';
+  document.getElementById('murid-kelas').value = m ? (m.kelas || '') : '';
+  document.getElementById('murid-wali').value = m ? (m.wali || '') : '';
+  openModal('modal-murid');
 }
 
 function saveMuridForm() {
-  const editId = document.getElementById('murid-edit-id').value;
-  const code = document.getElementById('murid-code').value.trim().toUpperCase();
+  if (!canWrite()) return;
+  const editId = document.getElementById('murid-edit-id').value.trim();
+  const code = document.getElementById('murid-code').value.trim().toUpperCase() || tbGenerateCode('SOL', window.TBStore.activeDate);
   const pin = document.getElementById('murid-pin').value.trim() || '1234';
   const name = document.getElementById('murid-name').value.trim();
   const program = document.getElementById('murid-program').value;
   const kelas = document.getElementById('murid-kelas').value.trim();
   const wali = document.getElementById('murid-wali').value.trim();
 
-  if (!code || !name) return showToast('Nomor Murid dan Nama Lengkap wajib diisi.', 'error');
+  if (!name) return showToast('Nama lengkap murid wajib diisi.', 'warn');
 
   const db = window.TBStore.db;
+  const dup = db.murid.find(x => x.code && x.code.toUpperCase() === code && x.id !== editId);
+  if (dup) return showToast(`Nomor Murid ${code} sudah dipakai.`, 'error');
+
   if (editId) {
-    if (!canEditOrDelete()) return;
     const idx = db.murid.findIndex(x => x.id === editId);
-    if (idx !== -1) db.murid[idx] = { ...db.murid[idx], code, pin, name, program, kelas, wali };
-  } else {
-    if (db.murid.some(x => (x.code || '').toUpperCase() === code)) {
-      return showToast(`Nomor Murid ${code} sudah digunakan.`, 'error');
+    if (idx !== -1) {
+      db.murid[idx] = { ...db.murid[idx], code, pin, name, program, kelas, wali };
     }
+    showToast('Data murid diperbarui.');
+  } else {
     db.murid.push({
       id: 'm-' + Date.now(),
       code,
       pin,
       name,
       program,
-      kelas,
-      wali,
-      regMonth: window.TBStore.activeDate.slice(0, 7)
+      kelas: kelas || '-',
+      wali: wali || '-',
+      regMonth: (window.TBStore.activeDate || new Date().toISOString().slice(0, 10)).slice(0, 7)
     });
+    showToast(`Murid baru (${code}) ditambahkan.`);
   }
 
-  tbPushNode('murid');
   closeModal('modal-murid');
-  tbNotifyListeners();
-  showToast('Data murid berhasil disimpan.', 'success');
+  tbPushNode('murid');
+  renderAllViews();
 }
 
 function deleteMurid(id) {
-  if (!canEditOrDelete()) return showToast('Hanya Admin yang dapat menghapus data.', 'warning');
-  showConfirmDialog('Hapus data murid ini secara permanen?', () => {
-    window.TBStore.db.murid = window.TBStore.db.murid.filter(m => m.id !== id);
+  if (!canWrite()) return;
+  const m = getMuridById(id);
+  if (!m) return;
+  showConfirm(`Hapus data murid "${m.name}" (${m.code})?`, () => {
+    window.TBStore.db.murid = window.TBStore.db.murid.filter(x => x.id !== id);
     tbPushNode('murid');
-    tbNotifyListeners();
-    showToast('Data murid dihapus.', 'info');
+    showToast('Data murid dihapus.');
+    renderAllViews();
   });
+}
+
+function renderMuridList() {
+  const container = document.getElementById('murid-list-container');
+  if (!container) return;
+
+  const q = (document.getElementById('search-murid')?.value || '').trim().toLowerCase();
+  const list = getAccessibleMurid().filter(m => {
+    if (!q) return true;
+    return (m.name || '').toLowerCase().includes(q) ||
+           (m.code || '').toLowerCase().includes(q) ||
+           (m.kelas || '').toLowerCase().includes(q);
+  });
+
+  if (list.length === 0) {
+    container.innerHTML = `<div class="liquid-glass-card p-6 rounded-2xl text-center text-xs text-slate-500">Belum ada data murid yang cocok.</div>`;
+    return;
+  }
+
+  const writeAllowed = canWrite();
+  container.innerHTML = list.map(m => `
+    <div class="liquid-glass-card p-3.5 rounded-2xl space-y-2">
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] font-extrabold">${escapeHtml(m.code)}</span>
+            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold">${escapeHtml(m.program || 'Keduanya')}</span>
+          </div>
+          <h3 class="text-sm font-extrabold text-slate-800 mt-1 truncate">${escapeHtml(m.name)}</h3>
+          <p class="text-[11px] text-slate-500">Kelas: <b class="text-slate-700">${escapeHtml(m.kelas || '-')}</b> • Wali: <span class="text-slate-700">${escapeHtml(m.wali || '-')}</span></p>
+        </div>
+        ${writeAllowed ? `
+          <div class="flex items-center gap-1 shrink-0">
+            <button type="button" onclick="openMuridModal('${escapeHtml(m.id)}')" class="px-2.5 py-1 rounded-lg bg-white/80 text-[11px] font-bold text-blue-700 border border-slate-200">Edit</button>
+            <button type="button" onclick="deleteMurid('${escapeHtml(m.id)}')" class="px-2.5 py-1 rounded-lg bg-rose-50 text-[11px] font-bold text-rose-700 border border-rose-200">Hapus</button>
+          </div>
+        ` : ''}
+      </div>
+      ${isSuperAdmin() ? `<div class="text-[10.5px] text-slate-500 pt-1 border-t border-slate-200/60">PIN Wali: <b class="text-slate-700">${escapeHtml(m.pin || '1234')}</b></div>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderBeranda() {
+  const db = window.TBStore.db;
+  const ds = window.TBStore.activeDate;
+  const kids = getAccessibleMurid();
+  const kidIds = new Set(kids.map(k => k.id));
+
+  const dayAtt = (db.attendance && db.attendance[ds]) || { mengaji: [], les: [] };
+  const hadirMengajiCount = (dayAtt.mengaji || []).filter(id => kidIds.has(id)).length;
+  const hadirLesCount = (dayAtt.les || []).filter(id => kidIds.has(id)).length;
+
+  const lesScores = (db.les || [])
+    .filter(x => kidIds.has(x.muridId) && !isNaN(Number(x.nilai)))
+    .map(x => Number(x.nilai));
+  const avgScore = lesScores.length > 0
+    ? Math.round(lesScores.reduce((a, b) => a + b, 0) / lesScores.length)
+    : null;
+
+  const muridEl = document.getElementById('stat-murid');
+  const mengajiEl = document.getElementById('stat-mengaji');
+  const lesEl = document.getElementById('stat-les');
+  const avgEl = document.getElementById('stat-avg-score');
+
+  if (muridEl) muridEl.textContent = isWali() ? (kids[0]?.code || 'AKTIF') : String(kids.length);
+  if (mengajiEl) mengajiEl.textContent = String(hadirMengajiCount);
+  if (lesEl) lesEl.textContent = String(hadirLesCount);
+  if (avgEl) avgEl.textContent = avgScore !== null ? String(avgScore) : '-';
+
+  const totalTarget = Math.max(1, kids.length * 2);
+  const pct = Math.min(100, Math.round(((hadirMengajiCount + hadirLesCount) / totalTarget) * 100));
+  const ring = document.getElementById('progress-ring');
+  const pctTxt = document.getElementById('progress-pct-text');
+  const statusTitle = document.getElementById('progress-status-title');
+  const statusDesc = document.getElementById('progress-status-desc');
+  const periodPill = document.getElementById('progress-period-pill');
+
+  if (ring) ring.style.setProperty('--pct', `${pct}%`);
+  if (pctTxt) pctTxt.textContent = `${pct}%`;
+  if (periodPill) periodPill.textContent = formatIndoDate(ds);
+
+  if (statusTitle && statusDesc) {
+    if (pct >= 80) {
+      statusTitle.textContent = 'Capaian Sangat Baik!';
+      statusDesc.textContent = `${hadirMengajiCount} hadir mengaji dan ${hadirLesCount} hadir les tercatat pada tanggal aktif.`;
+    } else if (pct > 0) {
+      statusTitle.textContent = 'Sedang Berjalan';
+      statusDesc.textContent = `${hadirMengajiCount} hadir mengaji dan ${hadirLesCount} hadir les tercatat pada tanggal aktif.`;
+    } else {
+      statusTitle.textContent = 'Siap Belajar!';
+      statusDesc.textContent = 'Catat absensi mengaji dan les untuk memantau grafik capaian.';
+    }
+  }
+
+  const acts = [];
+  (db.mengaji || []).filter(x => kidIds.has(x.muridId)).forEach(x => {
+    acts.push({
+      ts: x.ts || x.date || '',
+      label: `Mengaji • ${getMuridName(x.muridId)}`,
+      sub: `${x.jilid || '-'} (${x.halaman || '-'}) • ${x.nilai || ''}`
+    });
+  });
+  (db.les || []).filter(x => kidIds.has(x.muridId)).forEach(x => {
+    acts.push({
+      ts: x.ts || x.date || '',
+      label: `Les ${x.mapel || ''} • ${getMuridName(x.muridId)}`,
+      sub: `Nilai ${x.nilai ?? '-'} • ${x.materi || '-'}`
+    });
+  });
+  acts.sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
+
+  const actCountEl = document.getElementById('today-activity-count');
+  const actListEl = document.getElementById('today-activity-list');
+  if (actCountEl) actCountEl.textContent = `${acts.length} Catatan`;
+  if (actListEl) {
+    if (acts.length === 0) {
+      actListEl.innerHTML = `<p class="text-[11.5px] text-slate-500">Belum ada catatan aktivitas belajar.</p>`;
+    } else {
+      actListEl.innerHTML = acts.slice(0, 4).map(a => `
+        <div class="p-2.5 rounded-2xl bg-white/65 border border-white/80 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <p class="text-xs font-bold text-slate-800 truncate">${escapeHtml(a.label)}</p>
+            <p class="text-[10.5px] text-slate-500 truncate">${escapeHtml(a.sub)}</p>
+          </div>
+          <span class="text-[10px] font-bold text-blue-700 shrink-0">${escapeHtml(String(a.ts).slice(0, 10) || ds)}</span>
+        </div>
+      `).join('');
+    }
+  }
+
+  if (typeof renderBerandaDocs === 'function') renderBerandaDocs();
 }

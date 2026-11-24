@@ -1,0 +1,1 @@
+﻿window.TB_APP_VERSION = 'V 0.06.11.24.2318';
